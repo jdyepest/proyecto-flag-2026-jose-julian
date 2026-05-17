@@ -1,125 +1,229 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 import uuid
 from pathlib import Path
-from typing import Iterable, Iterator
+from typing import Iterator
 
 import pandas as pd
 import pyarrow.parquet as pq
 from tqdm import tqdm
 
-# ----------------------------
-# 1) Heading patterns -> labels
-# ----------------------------
-# You can expand/adjust these based on your corpus.
-HEADING_TO_LABEL = [
+LABELS = ["INTRO", "BACK", "METH", "RESU", "DISC", "CONTR", "LIM", "CONC"]
+SKIP_LABEL = "__SKIP__"
 
-    # Introduction
-    (re.compile(r"^\s*(introducci[oó]n|introduction)\s*[:\-]?\s*$", re.IGNORECASE), "INTRO"),
+# Skip sections that are out-of-scope for rhetorical labeling.
+SKIP_HEADING_RE = re.compile(
+    r"\b("
+    r"referencias?|bibliografia|anexos?|apendice|appendix|annex|"
+    r"agradecimientos?|acknowledg(e)?ments?|funding|financiacion|"
+    r"declaracion de datos|disponibilidad de datos|conflicto de interes|ethics?|"
+    r"material suplementario|supplementary material"
+    r")\b",
+    re.IGNORECASE,
+)
 
-    # Background / Related work / State of the art
-    (re.compile(r"^\s*(antecedentes|marco te[oó]rico|estado del arte|trabajos relacionados|related work)\s*[:\-]?\s*$", re.IGNORECASE), "BACK"),
-
-    # Methodology
-    (re.compile(r"^\s*(metodolog[ií]a|materiales y m[eé]todos|m[eé]todos|methodology|methods)\s*[:\-]?\s*$", re.IGNORECASE), "METH"),
-
-    # Results
-    (re.compile(r"^\s*(resultados|results)\s*[:\-]?\s*$", re.IGNORECASE), "RESU"),
-
-    # Discussion
-    (re.compile(r"^\s*(discusi[oó]n|discussion)\s*[:\-]?\s*$", re.IGNORECASE), "DISC"),
-
-    # Contributions (sometimes explicit)
-    (re.compile(r"^\s*(contribuci[oó]n(es)?|aport(es)?|contribution(s)?)\s*[:\-]?\s*$", re.IGNORECASE), "CONTR"),
-
-    # Limitations
-    (re.compile(r"^\s*(limitaci[oó]n(es)?|amenazas a la validez|threats to validity|limitations)\s*[:\-]?\s*$", re.IGNORECASE), "LIM"),
-
-    # Conclusions
-    (re.compile(r"^\s*(conclusiones|conclusion(es)?|concluding remarks)\s*[:\-]?\s*$", re.IGNORECASE), "CONC"),
+# Heading patterns by label. Anchored to heading start to avoid
+# matching random in-text words like "aporte" or "limitacion".
+HEADING_PATTERNS = [
+    (re.compile(r"^(introduccion|introduction|planteamiento del problema|objetivos?)\b", re.IGNORECASE), "INTRO"),
+    (re.compile(r"^(antecedentes|marco teorico|estado del arte|trabajos relacionados|related work|literature review)\b", re.IGNORECASE), "BACK"),
+    (re.compile(r"^(metodologia|materiales y metodos|metodos|methodology|methods?|experimental setup)\b", re.IGNORECASE), "METH"),
+    (re.compile(r"^(resultados?|results?)\b", re.IGNORECASE), "RESU"),
+    (re.compile(r"^(discusion|discussion|analisis de resultados?)\b", re.IGNORECASE), "DISC"),
+    (re.compile(r"^(contribucion(es)?|aportes?|contribution(s)?|principal contributions?)\b", re.IGNORECASE), "CONTR"),
+    (re.compile(r"^(limitacion(es)?|amenazas? a la validez|threats? to validity|limitations?)\b", re.IGNORECASE), "LIM"),
+    (re.compile(r"^(conclusion(es)?|concluding remarks|future work|trabajo futuro)\b", re.IGNORECASE), "CONC"),
 ]
 
-# Some corpora have numbered headings: "1. Introducción", "2 Metodología", etc.
-NUMBERED_HEADING = re.compile(r"^\s*(\d+(\.\d+)*)\s*[)\.\-]?\s*(.+?)\s*$")
+# Numbered heading forms:
+# 1. Introduccion
+# 2) Related Work
+# III - Metodologia
+NUMBERED_HEADING = re.compile(r"^\s*((\d+(\.\d+)*)|([ivxlcdm]+))\s*[)\.\-:]?\s*(.+?)\s*$", re.IGNORECASE)
 
-# ----------------------------
-# 2) Chunking config
-# ----------------------------
+SHORT_HEADING_MAX_WORDS = 12
+SHORT_HEADING_MAX_CHARS = 160
+SENTENCE_VERB_RE = re.compile(
+    r"\b("
+    r"es|son|fue|fueron|sera|seran|hay|hubo|tiene|tienen|presenta|presentan|"
+    r"proponemos|proponen|analiza|analizan|utiliza|utilizan|incluye|incluyen|"
+    r"debe|deben|puede|pueden|permite|permiten"
+    r")\b",
+    re.IGNORECASE,
+)
+
+# Chunking config
 MIN_WORDS = 250
 MAX_WORDS = 1000
-TARGET_WORDS = 600  # used for splitting long sections more evenly
+TARGET_WORDS = 600
+MIN_TAIL_WORDS = 80
+MIN_SECTION_WORDS = 50
+
+SCIENTIFIC_CUE_RE = re.compile(
+    r"\b("
+    r"investig|estudio|trabajo|articulo|paper|research|study|metod|modelo|propuesta|"
+    r"sistema|enfoque|analisis|experimento|resultad|discusion|conclusion|cient"
+    r")\w*\b",
+    re.IGNORECASE,
+)
+CONTR_SENTENCE_RE = re.compile(
+    r"\b("
+    r"no|pretende|ayudara|ayudar[aá]|permite|permitira|permitir[aá]|"
+    r"analiza|describe|explica|muestra|demuestra|presenta|proponemos|propone"
+    r")\b",
+    re.IGNORECASE,
+)
+
 
 def normalize_line(line: str) -> str:
-    # Keep it simple: trim and collapse spaces
     return re.sub(r"\s+", " ", line).strip()
+
+
+def strip_accents(text: str) -> str:
+    return "".join(ch for ch in unicodedata.normalize("NFD", text) if unicodedata.category(ch) != "Mn")
+
+
+def looks_like_heading(raw: str) -> bool:
+    if not raw:
+        return False
+
+    words = raw.split()
+    if len(words) > SHORT_HEADING_MAX_WORDS:
+        return False
+    if len(raw) > SHORT_HEADING_MAX_CHARS:
+        return False
+
+    # Long sentence-like lines are usually not headings.
+    if raw.endswith(".") and len(words) > 4:
+        return False
+    if raw.count(";") > 0 or raw.count(",") > 0:
+        return False
+    if "?" in raw or "!" in raw:
+        return False
+
+    # If it's long and has verbs, it is probably a sentence.
+    if len(words) >= 7 and SENTENCE_VERB_RE.search(raw):
+        return False
+
+    # Headings usually start with uppercase or numbering.
+    has_numbering = bool(NUMBERED_HEADING.match(raw))
+    first_alpha = next((ch for ch in raw if ch.isalpha()), "")
+    if first_alpha and first_alpha.islower() and not has_numbering:
+        return False
+
+    return True
+
+
+def canonical_heading(raw: str) -> str:
+    m = NUMBERED_HEADING.match(raw)
+    candidate = m.group(5) if m else raw
+    candidate = normalize_line(candidate).strip(":- ")
+    return candidate
+
 
 def heading_label(line: str) -> tuple[str | None, str | None]:
     """
-    Returns (label, heading_text) if line looks like a heading, else (None, None).
+    Return (label, heading_text) if line looks like a heading, else (None, None).
     """
     raw = line.strip()
     if not raw:
         return None, None
-
-    # Try numbered heading: "1. Introducción"
-    m = NUMBERED_HEADING.match(raw)
-    candidate = m.group(3) if m else raw
-
-    # Headings are usually short
-    if len(candidate) > 150:
+    if not looks_like_heading(raw):
         return None, None
 
-    for rx, label in HEADING_TO_LABEL:
-        if rx.match(candidate):
-            return label, candidate
+    heading_text = canonical_heading(raw)
+    if not heading_text:
+        return None, None
+
+    norm = strip_accents(heading_text).lower()
+    if SKIP_HEADING_RE.search(norm):
+        return SKIP_LABEL, heading_text
+
+    for rx, label in HEADING_PATTERNS:
+        if rx.match(norm):
+            if not is_label_plausible(norm, label):
+                return None, None
+            return label, heading_text
 
     return None, None
 
+
+def is_label_plausible(norm_heading: str, label: str) -> bool:
+    """
+    Extra guardrails for noisy labels to reduce false positives.
+    """
+    if label == "CONTR":
+        word_count = len(norm_heading.split())
+        if word_count > 10:
+            return False
+        if CONTR_SENTENCE_RE.search(norm_heading):
+            return False
+        # "Contribucion..." style headings are generally fine.
+        if norm_heading.startswith("contribucion") or norm_heading.startswith("contribution"):
+            return True
+        # "Aporte(s)..." headings are only accepted if they look academic.
+        if norm_heading.startswith("aporte") or norm_heading.startswith("aportes"):
+            return bool(SCIENTIFIC_CUE_RE.search(norm_heading))
+        return False
+
+    if label == "LIM":
+        # Keep generic limitation headings.
+        if norm_heading in {"limitaciones", "limitacion", "limitations", "limitation"}:
+            return True
+        # Otherwise require scientific context cue.
+        return bool(SCIENTIFIC_CUE_RE.search(norm_heading))
+
+    return True
+
+
 def split_into_sections(text: str) -> list[dict]:
     """
-    Split full doc text into labeled sections using headings.
+    Split full doc text into labeled sections using detected headings.
     Returns list of {label, heading, section_text}.
-    Unlabeled text before first heading is ignored (you can change that).
+    Unlabeled text before first heading is ignored.
     """
     lines = text.split("\n")
     sections: list[dict] = []
-    current = None  # dict with label/heading/lines
+    current = None
 
     for line in lines:
         norm = normalize_line(line)
         label, heading = heading_label(norm)
 
-        if label:
-            # Close previous section
+        if label == SKIP_LABEL:
             if current and current["lines"]:
                 current["section_text"] = "\n".join(current["lines"]).strip()
                 sections.append(current)
+            current = None
+            continue
 
-            # Start new section
+        if label:
+            if current and current["lines"]:
+                current["section_text"] = "\n".join(current["lines"]).strip()
+                sections.append(current)
             current = {"label": label, "heading": heading, "lines": []}
             continue
 
-        # regular content line
-        if current is not None:
-            if norm:  # skip empty lines (optional)
-                current["lines"].append(norm)
+        if current is not None and norm:
+            current["lines"].append(norm)
 
-    # Close last
     if current and current["lines"]:
         current["section_text"] = "\n".join(current["lines"]).strip()
         sections.append(current)
 
-    # Filter super-short sections (often noise)
     cleaned = []
     for s in sections:
-        if len(s["section_text"].split()) >= 50:
+        if len(s["section_text"].split()) >= MIN_SECTION_WORDS:
             cleaned.append(s)
     return cleaned
 
+
 def chunk_words(words: list[str], min_w: int, max_w: int) -> list[list[str]]:
     """
-    Chunk a list of words into chunks within [min_w, max_w] where possible.
+    Chunk list of words into [min_w, max_w] chunks when possible.
+    Keeps medium tails instead of dropping all leftovers.
     """
     chunks: list[list[str]] = []
     i = 0
@@ -128,23 +232,26 @@ def chunk_words(words: list[str], min_w: int, max_w: int) -> list[list[str]]:
     while i < n:
         remaining = n - i
         if remaining <= max_w:
-            # last chunk
             if remaining >= min_w:
                 chunks.append(words[i:])
-            # else: too short tail -> drop it (or merge backward; keep simple for baseline)
+            elif remaining >= MIN_TAIL_WORDS:
+                if chunks and len(chunks[-1]) + remaining <= int(max_w * 1.25):
+                    chunks[-1].extend(words[i:])
+                else:
+                    chunks.append(words[i:])
             break
 
-        # take a target chunk
         take = min(max_w, max(min_w, TARGET_WORDS))
-        chunks.append(words[i:i + take])
+        chunks.append(words[i : i + take])
         i += take
 
     return chunks
 
+
 def iter_parquet_files(root: Path) -> Iterator[Path]:
-    # supports either single folder of parts or nested chunk folders
     for p in sorted(root.rglob("*.parquet")):
         yield p
+
 
 def build_task1(
     clean_parquet_root: str,
@@ -153,26 +260,20 @@ def build_task1(
     min_quality_score: int = 0,
     require_sections: bool = False,
     max_docs: int | None = None,
-):
+) -> None:
     """
     Build Task1 dataset from clean parquet shards.
-
-    Filters you can toggle:
-    - min_quality_score: only keep docs with quality_score >= X
-    - require_sections: only keep docs where has_sections=True (if present)
-    - per_label_cap: cap examples per label to balance-ish
-
-    Output: a single parquet with chunks and labels.
     """
     root = Path(clean_parquet_root)
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    counts = {lbl: 0 for _, lbl in HEADING_TO_LABEL}
+    counts = {lbl: 0 for lbl in LABELS}
     rows = []
 
     docs_seen = 0
-    for fp in tqdm(list(iter_parquet_files(root)), desc="Reading clean_parquet"):
+    parquet_files = list(iter_parquet_files(root))
+    for fp in tqdm(parquet_files, desc="Reading clean_parquet"):
         table = pq.read_table(fp)
         df = table.to_pandas()
 
@@ -181,7 +282,6 @@ def build_task1(
                 break
             docs_seen += 1
 
-            # Optional filters (useful later when scaling)
             if "quality_score" in df.columns and int(r.get("quality_score", 0)) < min_quality_score:
                 continue
             if require_sections and "has_sections" in df.columns and not bool(r.get("has_sections", False)):
@@ -197,39 +297,37 @@ def build_task1(
 
             for s in sections:
                 label = s["label"]
-
-                # Skip label if already enough examples (balance cap)
-                if label in counts and counts[label] >= per_label_cap:
+                if label not in counts:
+                    continue
+                if counts[label] >= per_label_cap:
                     continue
 
                 words = s["section_text"].split()
                 chunks = chunk_words(words, MIN_WORDS, MAX_WORDS)
-
                 for ch_words in chunks:
-                    if label in counts and counts[label] >= per_label_cap:
+                    if counts[label] >= per_label_cap:
                         break
-
                     chunk_text = " ".join(ch_words).strip()
                     if not chunk_text:
                         continue
 
-                    rows.append({
-                        "chunk_id": str(uuid.uuid4()),
-                        "doc_id": doc_id,
-                        "source_path": path,
-                        "label": label,
-                        "heading": s["heading"],
-                        "n_words": len(ch_words),
-                        "text": chunk_text,
-                    })
-                    if label in counts:
-                        counts[label] += 1
+                    rows.append(
+                        {
+                            "chunk_id": str(uuid.uuid4()),
+                            "doc_id": doc_id,
+                            "source_path": path,
+                            "label": label,
+                            "heading": s["heading"],
+                            "n_words": len(ch_words),
+                            "text": chunk_text,
+                        }
+                    )
+                    counts[label] += 1
 
         if max_docs is not None and docs_seen >= max_docs:
             break
 
-        # Early stop if all labels reached cap
-        if all(counts.get(lbl, 0) >= per_label_cap for _, lbl in HEADING_TO_LABEL):
+        if all(counts.get(lbl, 0) >= per_label_cap for lbl in LABELS):
             break
 
     out_df = pd.DataFrame(rows)
@@ -238,8 +336,10 @@ def build_task1(
     print("Counts per label:", counts)
     print("Total rows:", len(out_df))
 
+
 if __name__ == "__main__":
     import argparse
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--clean-root", required=True, help="Root folder with clean parquet shards")
     ap.add_argument("--out", required=True, help="Output parquet path for task1 dataset")
