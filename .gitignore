@@ -13,4 +13,7 @@ datasets/
 *.safetensors
 model_cache/
 artifacts/
+!/artifacts/
+!/artifacts/eval_results/
+!/artifacts/eval_results/**
 ~/
