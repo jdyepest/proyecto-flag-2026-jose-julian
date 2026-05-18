@@ -203,7 +203,7 @@ Si usas `TASK1/TASK2_ENCODER_*_MLFLOW_MODEL_URI`, levanta el servidor MLflow:
 pip install mlflow boto3
 mlflow server \
   --backend-store-uri sqlite:///./mlflow.db \
-  --default-artifact-root s3://bucket-artifacts-models-2026-03/mlflow \
+  --default-artifact-root s3://bucket-artifacts-models-2026-03-2/mlflow \
   --host 0.0.0.0 --port 5006
 ```
 

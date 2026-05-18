@@ -67,6 +67,7 @@ def _openrouter_payload(req: OllamaChatRequest) -> dict[str, Any]:
 
     # Optional: enforce JSON responses if requested + enabled
     force_json = _env("OPENROUTER_FORCE_JSON", "0").lower() in {"1", "true", "yes"}
+
     if req.format == "json" and force_json:
         payload["response_format"] = {"type": "json_object"}
 
@@ -130,12 +131,13 @@ async def chat(req: OllamaChatRequest) -> dict[str, Any]:
     timeout_s = float(_env("OPENROUTER_TIMEOUT_S", "120"))
 
     headers = _openrouter_headers()
+    print(headers, "holi2")
     payload = _openrouter_payload(req)
 
     async with httpx.AsyncClient(timeout=timeout_s) as client:
         resp = await client.post(f"{base_url}/chat/completions", headers=headers, json=payload)
 
-    _log_openrouter_response(resp.status_code, resp.text)
+    #_log_openrouter_response(resp.status_code, resp.text)
 
     if resp.status_code != 200:
         raise HTTPException(status_code=resp.status_code, detail=resp.text)
@@ -149,7 +151,7 @@ async def chat(req: OllamaChatRequest) -> dict[str, Any]:
         raise HTTPException(status_code=resp.status_code, detail=data.get("error"))
 
     choices = data.get("choices") or []
-    print(data)
+    print(data, "holi")
     if not choices:
         raise HTTPException(status_code=502, detail=f"Respuesta inválida de OpenRouter (sin choices): {data}")
 

@@ -21,7 +21,7 @@ def _default_output(repo_root: Path, model_name: str) -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evalúa Golden Set con OpenRouter (Task1+Task2).")
-    parser.add_argument("--model", default=os.environ.get("OPENROUTER_MODEL") or "meta-llama/llama-3.2-3b-instruct")
+    parser.add_argument("--model", default=os.environ.get("OPENROUTER_MODEL") or "meta-llama/llama-3.3-70b-instruct:free")
     parser.add_argument("--batch-task1", type=int, default=1)
     parser.add_argument("--batch-task2", type=int, default=1)
     parser.add_argument("--limit", type=int, default=None)

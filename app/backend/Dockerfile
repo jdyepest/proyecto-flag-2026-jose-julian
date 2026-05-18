@@ -22,7 +22,7 @@ COPY data_lake/*.dvc /app/data_lake/
 
 # Force no-SCM mode locally and pull tracked data from DVC remote
 RUN printf "[core]\n    no_scm = true\n" > /app/.dvc/config.local
-RUN DVC_NO_SCM=1 dvc pull data_lake/clean_parquet.dvc data_lake/datasets.dvc
+RUN sed -i '/profile = default/d' /app/.dvc/config
 
 
 # Stage 2: runtime image
@@ -44,7 +44,6 @@ COPY app/frontend /app/app/frontend
 COPY .env /app/.env
 
 # Copy DVC data from builder
-COPY --from=dvc /app/data_lake /app/data_lake
 
 EXPOSE 5000
 ENV PORT=5000

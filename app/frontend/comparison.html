@@ -34,7 +34,7 @@
 
     <div class="page-header">
       <h1>Comparación de modelos</h1>
-      <p>Métricas de desempeño, costo y latencia de los 3 enfoques sobre el texto analizado</p>
+      <p>Métricas de desempeño de los 3 enfoques sobre el texto analizado</p>
     </div>
 
     <div id="comparison-error"></div>
@@ -48,7 +48,7 @@
       </div>
       <div class="model-header-card llm">
         <div class="model-header-icon">🧠</div>
-        <div class="model-header-name">Llama 3.2 3B Instruct (OpenRouter)</div>
+        <div class="model-header-name">Llama 3.3 70B Instruct (OpenRouter)</div>
         <div class="model-header-desc">meta-llama/llama-3.3-70b-instruct:free</div>
       </div>
       <div class="model-header-card api">
@@ -56,6 +56,27 @@
         <div class="model-header-name">API Comercial</div>
         <div class="model-header-desc">GPT / Gemini · API externa</div>
       </div>
+    </div>
+
+    <div class="metrics-section">
+      <h2>Comparación side by side</h2>
+      <p class="text-secondary text-small mb-2">Usa el mismo texto analizado y agrega hasta 3 modelos totales para comparar por párrafo.</p>
+
+      <div class="side-compare-controls">
+        <div class="side-compare-control-group">
+          <label for="compare-model-select" class="text-small text-secondary">Segundo modelo</label>
+          <select id="compare-model-select" class="side-compare-select"></select>
+        </div>
+        <button id="btn-run-side-compare" class="btn btn-primary">Agregar modelo</button>
+      </div>
+
+      <div id="side-compare-error"></div>
+      <div id="side-compare-content"></div>
+    </div>
+
+    <div class="metrics-section">
+      <h2>Estadísticas del entrenamiento</h2>
+      <p class="text-secondary text-small mb-2">Resumen agregado de rendimiento para referencia general.</p>
     </div>
 
     <!-- Tabla Tarea 1 -->
@@ -74,23 +95,16 @@
       </div>
     </div>
 
-    <!-- Gráficos de barras -->
+    <!-- Tarjetas trade-off -->
     <div class="charts-row">
       <div class="chart-card">
-        <div class="chart-title">Costo por documento (USD)</div>
+        <div class="chart-title">Costo por documento (Low / Medium / High)</div>
         <div id="chart-cost" class="bar-chart">
-          <!-- Generado por app.js -->
-        </div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Tiempo total de análisis (s)</div>
-        <div id="chart-time" class="bar-chart">
           <!-- Generado por app.js -->
         </div>
       </div>
     </div>
 
-    <!-- Tarjetas trade-off -->
     <h2 style="margin-bottom:1rem; font-size:1rem; text-transform:uppercase; letter-spacing:.07em; color:var(--text-secondary); font-family:var(--font-sans); font-weight:600;">
       Trade-offs por modelo
     </h2>
