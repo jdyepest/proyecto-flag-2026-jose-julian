@@ -1,9 +1,9 @@
 {
   "meta": {
-    "model_label": "openrouter-meta-llama/llama-3.2-3b-instruct",
+    "model_label": "openrouter-meta-llama/llama-3.3-70b-instruct:free",
     "run_at": "2026-03-11T04:38:07.327812+00:00",
     "params": {
-      "model": "meta-llama/llama-3.2-3b-instruct",
+      "model": "meta-llama/llama-3.3-70b-instruct:free",
       "batch_task1": 1,
       "batch_task2": 1,
       "limit": null,

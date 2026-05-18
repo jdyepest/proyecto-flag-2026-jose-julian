@@ -185,7 +185,7 @@ En conclusión, el sistema propuesto mejora la identificación de secciones ret�
   - Rápido y bajo costo.
   - Ideal para pruebas rápidas.
 
-- **Llama 3.2 3B Instruct (OpenRouter)**
+- **Llama 3.3 70B Instruct (OpenRouter)**
   - Alta calidad, pero sujeto a latencia y límites de API.
   - Recomendado si necesitas mejor desempeño.
 
@@ -298,7 +298,7 @@ En la vista de comparación, puedes usar **Exportar reporte** para guardar un JS
 ### 8.3 “Rate limited” (OpenRouter)
 - El modelo gratuito está temporalmente limitado.
 - Espera y reintenta o cambia de modelo.
-- **Recomendación:** deja unos minutos entre ejecuciones cuando uses el modelo Llama 3.2 3B Instruct (OpenRouter free).
+- **Recomendación:** deja unos minutos entre ejecuciones cuando uses el modelo Llama 3.3 70B Instruct (OpenRouter free).
 
 ---
 
@@ -307,7 +307,7 @@ En la vista de comparación, puedes usar **Exportar reporte** para guardar un JS
 - Usa textos con **varios párrafos** y contenido académico real.
 - Evita textos demasiado cortos o sin estructura.
 - Si necesitas rapidez, usa **Encoder**.
-- Para calidad, usa **Llama 3.2 3B Instruct** (cuando haya disponibilidad).
+- Para calidad, usa **Llama 3.3 70B Instruct** (cuando haya disponibilidad).
 
 ---
 

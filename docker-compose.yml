@@ -9,6 +9,7 @@ services:
       MLFLOW_SERVER_ALLOWED_HOSTS: "*"
       MLFLOW_SERVER_CORS_ALLOWED_ORIGINS: "*"
       MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE: "true"
+      MLFLOW_DEFAULT_ARTIFACT_ROOT: ${MLFLOW_DEFAULT_ARTIFACT_ROOT:-s3://bucket-artifacts-models-2026-03/mlflow}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
@@ -22,6 +23,7 @@ services:
       dockerfile: app/ollama/Dockerfile
     ports:
       - "11434:11434"
+    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "11434", "--reload", "--reload-dir", "/app"]
     environment:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       OPENROUTER_MODEL: ${OPENROUTER_MODEL:-meta-llama/llama-3.3-70b-instruct:free}
@@ -38,6 +40,9 @@ services:
       OPENROUTER_PROVIDER_IGNORE: ${OPENROUTER_PROVIDER_IGNORE:-}
       OPENROUTER_QUANTIZATIONS: ${OPENROUTER_QUANTIZATIONS:-}
       OPENROUTER_ALLOW_FALLBACKS: ${OPENROUTER_ALLOW_FALLBACKS:-}
+    volumes:
+      - ./app/ollama/app.py:/app/app.py
+      - ./.env:/app/.env:ro
 
   backend:
     build:
@@ -59,5 +64,9 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
       LOCAL_LLM_VARIANT: ${LOCAL_LLM_VARIANT:-small}
       # LOCAL_LLM_MODEL: ""
+    volumes:
+      - ./app/backend:/app/app/backend
+      - ./app/frontend:/app/app/frontend
+      - ./.env:/app/.env:ro
 
 volumes: {}

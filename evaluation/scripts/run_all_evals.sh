@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage:
 #   evaluation/scripts/run_all_evals.sh
 #   MLFLOW_EXPERIMENT=golden-set-eval evaluation/scripts/run_all_evals.sh
-#   OPENROUTER_MODEL=meta-llama/llama-3.2-3b-instruct evaluation/scripts/run_all_evals.sh
+#   OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct:free evaluation/scripts/run_all_evals.sh
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"

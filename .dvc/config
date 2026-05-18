@@ -1,7 +1,7 @@
 [core]
     remote = storage
 ['remote "s3"']
-    url = s3://bucket-artifacts-models-2026-03/dvc
+    url = s3://bucket-artifacts-models-2026-03-2/dvc
 ['remote "storage"']
     url = s3://proyecto-final-maia-jose-julian/dvcstore
     profile = default
