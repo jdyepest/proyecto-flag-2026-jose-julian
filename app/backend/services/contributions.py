@@ -559,8 +559,48 @@ def _download_model_from_mlflow(model_uri: str, cache_prefix: str) -> Path:
         if (parent / "model.safetensors").exists() or (parent / "pytorch_model.bin").exists():
             return parent
 
+    def _is_s3_listbucket_access_denied(exc: Exception) -> bool:
+        message = str(exc)
+        if "AccessDenied" in message and "ListBucket" in message:
+            return True
+        return "not authorized to perform: s3:ListBucket" in message
+
+    def _runs_uri_to_s3_prefix(uri: str) -> str | None:
+        if not uri.startswith("runs:/"):
+            return None
+        tail = uri[len("runs:/") :].lstrip("/")
+        if not tail:
+            return None
+        parts = tail.split("/", 1)
+        run_id = parts[0].strip()
+        artifact_path = parts[1].strip("/") if len(parts) > 1 else ""
+        if not run_id:
+            return None
+        try:
+            from mlflow.tracking import MlflowClient
+        except Exception:  # noqa: BLE001
+            return None
+        artifact_uri = (MlflowClient().get_run(run_id).info.artifact_uri or "").strip()
+        if not artifact_uri.startswith("s3://"):
+            return None
+        if artifact_path:
+            return f"{artifact_uri.rstrip('/')}/{artifact_path}"
+        return artifact_uri
+
     logger.info("Task2 encoder: descargando artefacto MLflow (%s) a %s", model_uri, str(dst))
-    downloaded_path = download_artifacts(artifact_uri=model_uri, dst_path=str(dst))
+    try:
+        downloaded_path = download_artifacts(artifact_uri=model_uri, dst_path=str(dst))
+    except Exception as e:  # noqa: BLE001
+        fallback_s3_uri = _runs_uri_to_s3_prefix(model_uri)
+        if fallback_s3_uri and _is_s3_listbucket_access_denied(e):
+            logger.warning(
+                "Task2 encoder: MLflow falló por ListBucket denegado; usando fallback S3 sin listado. "
+                "model_uri=%s s3_uri=%s",
+                model_uri,
+                fallback_s3_uri,
+            )
+            return download_hf_model_from_s3(fallback_s3_uri, dst)
+        raise
     downloaded = Path(downloaded_path)
     if downloaded.is_file():
         downloaded = downloaded.parent
