@@ -36,8 +36,16 @@ WORKDIR /app
 COPY app/backend/requirements.txt /app/app/backend/requirements.txt
 RUN pip install --no-cache-dir -r /app/app/backend/requirements.txt
 
-COPY requirments.txt /app/app/backend/requirements_global.txt
-RUN pip install --no-cache-dir -r /app/app/backend/requirements_global.txt
+# Runtime deps used by backend services (encoder/mlflow/S3).
+# Avoid installing the root "requirments.txt" because it includes many
+# notebook/dev packages that are not required in production and often fail
+# in slim container builds.
+RUN pip install --no-cache-dir \
+    boto3 \
+    mlflow \
+    "transformers<5" \
+    torch \
+    safetensors
 
 COPY app/backend /app/app/backend
 COPY app/frontend /app/app/frontend
