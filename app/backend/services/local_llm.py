@@ -29,8 +29,8 @@ def get_local_llm_model_name() -> str:
     Selección de modelo local (open-weight) con flag para prod:
       - LOCAL_LLM_MODEL: override absoluto (si existe, se usa tal cual)
       - LOCAL_LLM_VARIANT: "small" | "large" (default: small)
-      - LOCAL_LLM_SMALL_MODEL: default llama3.3:70b-instruct
-      - LOCAL_LLM_LARGE_MODEL: default llama3.1:8b
+      - LOCAL_LLM_SMALL_MODEL: default llama3.1:8b
+      - LOCAL_LLM_LARGE_MODEL: default llama3.3:70b-instruct
     """
     override = (os.environ.get("LOCAL_LLM_MODEL") or "").strip()
     if override:
@@ -38,8 +38,8 @@ def get_local_llm_model_name() -> str:
 
     variant = (os.environ.get("LOCAL_LLM_VARIANT") or "small").strip().lower()
     # NOTE: Ollama tags can vary; use simple defaults and allow override via env vars.
-    small = (os.environ.get("LOCAL_LLM_SMALL_MODEL") or "llama3.3:70b-instruct").strip()
-    large = (os.environ.get("LOCAL_LLM_LARGE_MODEL") or "llama3.1:8b").strip()
+    small = (os.environ.get("LOCAL_LLM_SMALL_MODEL") or "llama3.1:8b").strip()
+    large = (os.environ.get("LOCAL_LLM_LARGE_MODEL") or "llama3.3:70b-instruct").strip()
 
     return large if variant == "large" else small
 
@@ -53,7 +53,7 @@ def get_openrouter_base_url() -> str:
 
 
 def get_openrouter_model_name() -> str:
-    return (os.environ.get("OPENROUTER_MODEL") or "meta-llama/llama-3.3-70b-instruct:free").strip()
+    return (os.environ.get("OPENROUTER_MODEL") or "meta-llama/llama-3.1-8b-instruct").strip()
 
 
 def _parse_csv(value: str) -> list[str]:

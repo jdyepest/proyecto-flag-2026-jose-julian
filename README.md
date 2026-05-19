@@ -127,7 +127,7 @@ GEMINI_STRUCTURED_OUTPUT=1
 # Local: http://localhost:11434 | Docker Compose: http://ollama:11434
 OLLAMA_BASE_URL="http://localhost:11434"
 OPENROUTER_API_KEY="..."   # requerido
-OPENROUTER_MODEL="meta-llama/llama-3.3-70b-instruct:free"
+OPENROUTER_MODEL="meta-llama/llama-3.1-8b-instruct"
 OPENROUTER_BASE_URL="https://openrouter.ai/api/v1"
 OPENROUTER_TIMEOUT_S=120
 OPENROUTER_PROVIDER_ONLY="open-inference"   # opcional

@@ -5,7 +5,7 @@ When real APIs are available, update MODELS with actual connection details.
 
 MODELS = {
     "encoder": {
-        "name": "Encoder (BETO/RoBERTa-BNE)",
+        "name": "Encoder (SciBERT)",
         "description": "Clasificador encoder fine-tuned para español científico",
         "icon": "⚡",
         "tag": "Rápido",
@@ -17,8 +17,8 @@ MODELS = {
         "cost_per_doc": 0.001,
     },
     "llm": {
-        "name": "LLM Open-Weight (Llama/Mistral)",
-        "description": "Modelo open-weight local (Ollama). Default ~3B; cambia a 7/8B con env LOCAL_LLM_VARIANT=large",
+        "name": "LLM Open-Weight (Llama 3.1 8B)",
+        "description": "Modelo open-weight servido por OpenRouter/Ollama proxy",
         "icon": "🧠",
         "tag": "Balanceado",
         "color": "#7B1FA2",

@@ -55,7 +55,7 @@ def _openrouter_headers() -> dict[str, str]:
 
 
 def _openrouter_payload(req: OllamaChatRequest) -> dict[str, Any]:
-    model = _env("OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-instruct:free")
+    model = _env("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct")
     payload: dict[str, Any] = {
         "model": model,
         "messages": req.messages,
@@ -110,7 +110,7 @@ def _log_openrouter_response(status_code: int, body: str) -> None:
 
 @app.get("/api/tags")
 async def tags() -> dict[str, Any]:
-    model = _env("OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-instruct:free")
+    model = _env("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct")
     return {
         "models": [
             {

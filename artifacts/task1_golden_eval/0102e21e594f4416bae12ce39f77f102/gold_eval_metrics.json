@@ -1,0 +1,7 @@
+{
+  "run_id": "0102e21e594f4416bae12ce39f77f102",
+  "n_samples": 800,
+  "eval_gold_accuracy": 0.60375,
+  "eval_gold_recall_macro": 0.48697096000301643,
+  "eval_gold_recall_weighted": 0.60375
+}

@@ -10,7 +10,7 @@ def main() -> None:
     Requisitos:
       - Ollama corriendo (por defecto http://localhost:11434)
       - Modelo descargado:
-          ollama pull llama3.2:3b-instruct
+          ollama pull llama3.3:70b-instruct
         (o configura LOCAL_LLM_MODEL)
     """
     backend_dir = os.path.dirname(os.path.dirname(__file__))

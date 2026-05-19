@@ -19,7 +19,7 @@
       "portMappings": [{ "containerPort": 11434, "protocol": "tcp" }],
       "environment": [
         { "name": "OPENROUTER_API_KEY", "value": "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" },
-        { "name": "OPENROUTER_MODEL", "value": "meta-llama/llama-3.3-70b-instruct:free" },
+        { "name": "OPENROUTER_MODEL", "value": "meta-llama/llama-3.1-8b-instruct" },
         { "name": "OPENROUTER_PROVIDER_ONLY", "value": "open-inference" },
         { "name": "OPENROUTER_QUANTIZATIONS", "value": "int8" },
         { "name": "OPENROUTER_ALLOW_FALLBACKS", "value": "0" }

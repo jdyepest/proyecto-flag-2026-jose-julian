@@ -17,3 +17,4 @@ artifacts/
 !/artifacts/eval_results/
 !/artifacts/eval_results/**
 ~/
+mlruns_recovered/

@@ -9,7 +9,7 @@ services:
       MLFLOW_SERVER_ALLOWED_HOSTS: "*"
       MLFLOW_SERVER_CORS_ALLOWED_ORIGINS: "*"
       MLFLOW_SERVER_DISABLE_SECURITY_MIDDLEWARE: "true"
-      MLFLOW_DEFAULT_ARTIFACT_ROOT: ${MLFLOW_DEFAULT_ARTIFACT_ROOT:-s3://bucket-artifacts-models-2026-03/mlflow}
+      MLFLOW_DEFAULT_ARTIFACT_ROOT: ${MLFLOW_DEFAULT_ARTIFACT_ROOT:-s3://bucket-artifacts-models-2026-03-2/mlflow}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
@@ -26,7 +26,7 @@ services:
     command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "11434", "--reload", "--reload-dir", "/app"]
     environment:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-meta-llama/llama-3.3-70b-instruct:free}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-meta-llama/llama-3.1-8b-instruct}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
       OPENROUTER_TIMEOUT_S: ${OPENROUTER_TIMEOUT_S:-120}
       # Optional headers recommended by OpenRouter

@@ -49,7 +49,7 @@ def analyze():
             encoder_variant:
               type: string
               enum: [roberta, scibert]
-              default: roberta
+              default: scibert
     responses:
       200:
         description: Resultado del análisis
@@ -77,7 +77,7 @@ def analyze():
     text = (body.get("text") or "").strip()
     model = body.get("model", "encoder")
     tasks = body.get("tasks", ["segmentation", "contributions"])
-    encoder_variant = (body.get("encoder_variant") or "roberta").strip().lower()
+    encoder_variant = (body.get("encoder_variant") or "scibert").strip().lower()
 
     # Validaciones básicas
     if not text:

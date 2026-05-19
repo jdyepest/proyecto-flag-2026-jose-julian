@@ -44,7 +44,7 @@ const _MOCK = (() => {
   };
 
   // ── Resultados fijos para comparación (fuente: artifacts/eval_results/*.json) ──
-  // encoder_roberta.json, openrouter_meta-llama_llama-3.3-70b-instruct_free.json, gemini_gemini-2.5-flash-lite.json
+  // encoder_roberta.json, openrouter_meta-llama_llama-3.1-8b-instruct.json, gemini_gemini-2.5-flash-lite.json
   const FIXED_COMPARE_METRICS = {
     task1_metrics: {
       encoder: { f1: 0.3959, precision: 0.389,  recall: 0.3367, latency: 20.4958 },
@@ -235,7 +235,7 @@ const _MOCK = (() => {
     return {
       id,
       model,
-      model_name: { encoder:"Encoder (BETO/RoBERTa)", llm:"Llama 3.3 70B Instruct (OpenRouter)", api:"API Comercial" }[model],
+      model_name: { encoder:"Encoder (SciBERT)", llm:"Llama 3.1 8B Instruct (OpenRouter)", api:"API Comercial" }[model],
       segmentation: tasks.includes("segmentation") ? segmentation : null,
       contributions: tasks.includes("contributions") ? contributions : null,
     };
@@ -274,7 +274,7 @@ async function apiAnalyze(text, model, tasks) {
     const resp = await fetch(`${API_BASE}/api/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, model, tasks }),
+      body: JSON.stringify({ text, model, tasks, encoder_variant: "scibert" }),
       signal: controller.signal,
     });
     clearTimeout(timer);

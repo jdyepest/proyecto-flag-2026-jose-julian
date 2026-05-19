@@ -53,7 +53,7 @@ GEMINI_MODEL=gemini-2.5-flash-lite
 
 # OpenRouter (si usas proxy LLM app/ollama)
 OPENROUTER_API_KEY=TU_API_KEY
-OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct:free
+OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 
 # Encoder (Task1/Task2) vía MLflow o S3
