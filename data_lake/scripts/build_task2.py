@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import random
 import re
 import uuid
-import random
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 from tqdm import tqdm
-
 
 REQUIRED_SILVER_COLS = ["chunk_id", "doc_id", "source_path", "label", "heading", "text"]
 
@@ -22,32 +21,69 @@ class BuildConfig:
     n_neg: int
     neg_min_words: int
     neg_max_words: int
+    min_pos_score: int
     seed: int
 
 
-def compile_contribution_patterns() -> list[re.Pattern]:
+def compile_contribution_patterns() -> tuple[list[re.Pattern], list[re.Pattern]]:
     """
-    Patrones para detectar formulaciones explícitas de contribución científica.
-    Este conjunto es deliberadamente conservador (silver).
+    Return (strong_patterns, weak_patterns) for contribution detection.
     """
-    patterns = [
+    strong_patterns = [
         r"\b(en\s+este\s+trabajo\s+)?(presentamos|proponemos|introducimos|planteamos)\b",
         r"\b(nuestra|nuestro)\s+(propuesta|aporte|contribuci[oó]n)\b",
         r"\b(este\s+trabajo|este\s+art[ií]culo)\s+(propone|presenta|introduce)\b",
         r"\b(aportamos|contribuimos)\b",
         r"\b(a\s+diferencia\s+de)\b",
         r"\b(primer(a)?\s+vez|por\s+primera\s+vez)\b",
-        r"\b(nuevo|nueva)\s+(m[eé]todo|enfoque|algoritmo|sistema|marco|modelo|recurso|corpus|dataset)\b",
         r"\b(ponemos\s+a\s+disposici[oó]n|liberamos|publicamos)\b",
     ]
-    return [re.compile(p, flags=re.IGNORECASE) for p in patterns]
+    weak_patterns = [
+        r"\b(nuevo|nueva)\s+(m[eé]todo|enfoque|algoritmo|sistema|marco|modelo|recurso|corpus|dataset)\b",
+        r"\b(mejora(mos)?|supera(mos)?|incrementa(mos)?)\b",
+        r"\b(prototipo|framework|pipeline)\b",
+    ]
+    return (
+        [re.compile(p, flags=re.IGNORECASE) for p in strong_patterns],
+        [re.compile(p, flags=re.IGNORECASE) for p in weak_patterns],
+    )
 
 
-def looks_like_contribution(text: str, regexes: list[re.Pattern]) -> bool:
+def contribution_score(text: str, heading: str, rhetorical_label: str, strong: list[re.Pattern], weak: list[re.Pattern]) -> int:
     t = (text or "").strip()
     if not t:
-        return False
-    return any(rx.search(t) for rx in regexes)
+        return 0
+
+    score = 0
+    rlabel = (rhetorical_label or "").strip().upper()
+    heading_l = (heading or "").strip().lower()
+
+    strong_hits = sum(1 for rx in strong if rx.search(t))
+    weak_hits = sum(1 for rx in weak if rx.search(t))
+    score += 3 * strong_hits
+    score += 1 * weak_hits
+
+    if "contribuci" in heading_l or "aporte" in heading_l:
+        score += 2
+
+    if rlabel == "CONTR":
+        score += 2
+    elif rlabel in {"METH", "RESU", "DISC"}:
+        score += 1
+
+    return score
+
+
+def looks_like_contribution(
+    text: str,
+    heading: str,
+    rhetorical_label: str,
+    strong: list[re.Pattern],
+    weak: list[re.Pattern],
+    min_pos_score: int,
+) -> tuple[bool, int]:
+    sc = contribution_score(text, heading, rhetorical_label, strong, weak)
+    return (sc >= min_pos_score), sc
 
 
 def validate_silver_df(df: pd.DataFrame) -> None:
@@ -57,10 +93,6 @@ def validate_silver_df(df: pd.DataFrame) -> None:
 
 
 def sample_diverse(df: pd.DataFrame, n: int, seed: int, key_col: str = "doc_id") -> pd.DataFrame:
-    """
-    Muestreo simple con diversidad por documento: prioriza 1 fragmento por doc,
-    y luego rellena con el resto si n excede #docs.
-    """
     if df.empty or n <= 0:
         return df.iloc[0:0].copy()
 
@@ -76,10 +108,6 @@ def sample_diverse(df: pd.DataFrame, n: int, seed: int, key_col: str = "doc_id")
 
 
 def make_negative_window(text: str, min_words: int, max_words: int, seed: int, max_tries: int = 5) -> tuple[str, int] | None:
-    """
-    Crea una ventana (sub-fragmento) de longitud en [min_words, max_words] desde un texto largo.
-    Devuelve (window_text, n_words) o None si no es posible.
-    """
     words = (text or "").split()
     if len(words) < min_words:
         return None
@@ -87,21 +115,16 @@ def make_negative_window(text: str, min_words: int, max_words: int, seed: int, m
     rng = random.Random(seed ^ len(words))
     for _ in range(max_tries):
         target_len = rng.randint(min_words, min(max_words, len(words)))
-        if target_len < min_words:
-            continue
-
         start = rng.randint(0, max(0, len(words) - target_len))
         window_words = words[start : start + target_len]
         window_text = " ".join(window_words).strip()
         if window_text:
             return window_text, len(window_words)
-
     return None
 
 
 def build_task2(cfg: BuildConfig) -> None:
     cfg.out_parquet.parent.mkdir(parents=True, exist_ok=True)
-
     df = pd.read_parquet(cfg.silver_parquet)
     validate_silver_df(df)
 
@@ -115,36 +138,49 @@ def build_task2(cfg: BuildConfig) -> None:
     if "n_words" not in df.columns or df["n_words"].isna().any():
         df["n_words"] = df["text"].str.split().str.len()
 
-    regexes = compile_contribution_patterns()
-    df["is_contribution_match"] = df["text"].apply(lambda t: looks_like_contribution(t, regexes))
+    strong, weak = compile_contribution_patterns()
+    scored = df.apply(
+        lambda r: looks_like_contribution(
+            text=str(r["text"]),
+            heading=str(r.get("heading", "")),
+            rhetorical_label=str(r.get("label", "")),
+            strong=strong,
+            weak=weak,
+            min_pos_score=cfg.min_pos_score,
+        ),
+        axis=1,
+        result_type="expand",
+    )
+    df["is_contribution_match"] = scored[0].astype(bool)
+    df["contrib_score"] = scored[1].astype(int)
 
-    # -------------------------
-    # Positivos (contribución)
-    # -------------------------
-    pos_strict = df[df["is_contribution_match"]].copy()
-    pos_strict["pos_reason"] = "pattern"
-
+    # Positives
+    pos_strict = df[df["is_contribution_match"]].sort_values("contrib_score", ascending=False).copy()
+    pos_strict["pos_reason"] = "pattern_or_score"
     pos_picked = sample_diverse(pos_strict, cfg.n_pos, cfg.seed)
 
-    # Si no alcanza, completar desde label CONTR (aunque no haya match)
     if len(pos_picked) < cfg.n_pos:
         remaining_n = cfg.n_pos - len(pos_picked)
         already = set(pos_picked["chunk_id"].tolist())
         pos_relaxed = df[(df["label"] == "CONTR") & (~df["chunk_id"].isin(already))].copy()
+        pos_relaxed = pos_relaxed.sort_values("contrib_score", ascending=False)
         pos_relaxed["pos_reason"] = "label_CONTR"
         pos_fill = sample_diverse(pos_relaxed, remaining_n, cfg.seed + 1)
         pos_picked = pd.concat([pos_picked, pos_fill], axis=0)
 
     pos_picked = pos_picked.head(cfg.n_pos).copy()
+    if len(pos_picked) < cfg.n_pos:
+        raise RuntimeError(
+            f"No hay suficientes positivos. Se pidieron {cfg.n_pos} y se obtuvieron {len(pos_picked)}. "
+            "Baja --min-pos-score o reduce --n-pos."
+        )
 
-    # -------------------------
-    # Negativos (no contribución)
-    # -------------------------
+    # Negatives
     pos_ids = set(pos_picked["chunk_id"].tolist())
     neg_candidates = df[~df["chunk_id"].isin(pos_ids)].copy()
     neg_candidates = neg_candidates[~neg_candidates["is_contribution_match"]].copy()
+    neg_candidates = neg_candidates[neg_candidates["label"].isin(["BACK", "INTRO", "LIM", "CONC", "DISC", "RESU"])].copy()
     neg_candidates = neg_candidates[neg_candidates["n_words"] >= cfg.neg_min_words].copy()
-
     neg_candidates = neg_candidates.sample(frac=1, random_state=cfg.seed + 7)
 
     neg_rows = []
@@ -155,7 +191,6 @@ def build_task2(cfg: BuildConfig) -> None:
 
         raw_text = str(r["text"])
         n_words = int(r["n_words"])
-
         if cfg.neg_min_words <= n_words <= cfg.neg_max_words:
             window_text = raw_text
             window_n = n_words
@@ -170,8 +205,14 @@ def build_task2(cfg: BuildConfig) -> None:
                 continue
             window_text, window_n = window
 
-        # Re-chequear por seguridad que el window no tenga patrones de contribución
-        if looks_like_contribution(window_text, regexes):
+        if looks_like_contribution(
+            text=window_text,
+            heading=str(r.get("heading", "")),
+            rhetorical_label=str(r.get("label", "")),
+            strong=strong,
+            weak=weak,
+            min_pos_score=cfg.min_pos_score,
+        )[0]:
             continue
 
         neg_rows.append(
@@ -183,6 +224,7 @@ def build_task2(cfg: BuildConfig) -> None:
                 "heading": r["heading"],
                 "text": window_text,
                 "n_words": window_n,
+                "contrib_score": int(r.get("contrib_score", 0)),
             }
         )
         neg_seen += 1
@@ -191,12 +233,9 @@ def build_task2(cfg: BuildConfig) -> None:
     if len(neg_picked) < cfg.n_neg:
         raise RuntimeError(
             f"No hay suficientes negativos. Se pidieron {cfg.n_neg} y se obtuvieron {len(neg_picked)}. "
-            "Ajusta --neg-min-words/--neg-max-words o expande el silver."
+            "Ajusta --neg-min-words/--neg-max-words o reduce --n-neg."
         )
 
-    # -------------------------
-    # Dataset final (Task2)
-    # -------------------------
     def to_rows(frame: pd.DataFrame, is_pos: bool) -> list[dict]:
         rows: list[dict] = []
         for _, r in frame.iterrows():
@@ -210,6 +249,7 @@ def build_task2(cfg: BuildConfig) -> None:
                     "rhetorical_label": str(r["label"]),
                     "is_contribution": bool(is_pos),
                     "n_words": int(r["n_words"]),
+                    "heuristic_score": int(r.get("contrib_score", 0)),
                     "text": str(r["text"]),
                 }
             )
@@ -233,18 +273,19 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--silver-parquet",
-        default="data_lake/datasets/task1_retórica.parquet",
-        help="Silver Task1 parquet con columnas: chunk_id,doc_id,source_path,label,heading,n_words,text",
+        default="data_lake/datasets/task1_silver_final_train_no_golden.parquet",
+        help="Task1 silver parquet with chunk_id/doc_id/source_path/label/heading/text",
     )
     ap.add_argument(
         "--out",
         default="data_lake/datasets/task2_contributions_silver.parquet",
-        help="Output parquet para Task2 (contribuciones)",
+        help="Output parquet for Task2 silver",
     )
-    ap.add_argument("--n-pos", type=int, default=1000, help="Cantidad de fragmentos positivos (con contribución)")
-    ap.add_argument("--n-neg", type=int, default=1000, help="Cantidad de fragmentos negativos (sin contribución)")
+    ap.add_argument("--n-pos", type=int, default=4000, help="Number of positive fragments")
+    ap.add_argument("--n-neg", type=int, default=4000, help="Number of negative fragments")
     ap.add_argument("--neg-min-words", type=int, default=250)
     ap.add_argument("--neg-max-words", type=int, default=500)
+    ap.add_argument("--min-pos-score", type=int, default=3, help="Minimum heuristic score to mark positive")
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
@@ -255,6 +296,7 @@ def main() -> None:
         n_neg=int(args.n_neg),
         neg_min_words=int(args.neg_min_words),
         neg_max_words=int(args.neg_max_words),
+        min_pos_score=int(args.min_pos_score),
         seed=int(args.seed),
     )
     build_task2(cfg)
@@ -262,3 +304,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

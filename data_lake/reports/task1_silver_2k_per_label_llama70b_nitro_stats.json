@@ -1,0 +1,253 @@
+{
+  "global": {
+    "total_rows": 16000,
+    "changed_rows": 11132,
+    "changed_pct": 69.575,
+    "unchanged_rows": 4868,
+    "unchanged_pct": 30.425
+  },
+  "by_heuristic_label": {
+    "INTRO": {
+      "total_heuristic": 2000,
+      "changed_to_llm": 1865,
+      "changed_pct": 93.25
+    },
+    "BACK": {
+      "total_heuristic": 2000,
+      "changed_to_llm": 1076,
+      "changed_pct": 53.8
+    },
+    "METH": {
+      "total_heuristic": 2000,
+      "changed_to_llm": 1002,
+      "changed_pct": 50.1
+    },
+    "RESU": {
+      "total_heuristic": 2000,
+      "changed_to_llm": 1228,
+      "changed_pct": 61.4
+    },
+    "DISC": {
+      "total_heuristic": 2000,
+      "changed_to_llm": 1172,
+      "changed_pct": 58.6
+    },
+    "CONTR": {
+      "total_heuristic": 2000,
+      "changed_to_llm": 1967,
+      "changed_pct": 98.35
+    },
+    "LIM": {
+      "total_heuristic": 2000,
+      "changed_to_llm": 1399,
+      "changed_pct": 69.95
+    },
+    "CONC": {
+      "total_heuristic": 2000,
+      "changed_to_llm": 1423,
+      "changed_pct": 71.15
+    }
+  },
+  "top_transitions": [
+    {
+      "heuristic_label": "METH",
+      "llm_label": "METH",
+      "count": 998
+    },
+    {
+      "heuristic_label": "BACK",
+      "llm_label": "BACK",
+      "count": 924
+    },
+    {
+      "heuristic_label": "DISC",
+      "llm_label": "DISC",
+      "count": 828
+    },
+    {
+      "heuristic_label": "RESU",
+      "llm_label": "RESU",
+      "count": 772
+    },
+    {
+      "heuristic_label": "CONTR",
+      "llm_label": "BACK",
+      "count": 687
+    },
+    {
+      "heuristic_label": "INTRO",
+      "llm_label": "BACK",
+      "count": 661
+    },
+    {
+      "heuristic_label": "LIM",
+      "llm_label": "LIM",
+      "count": 601
+    },
+    {
+      "heuristic_label": "CONC",
+      "llm_label": "CONC",
+      "count": 577
+    },
+    {
+      "heuristic_label": "INTRO",
+      "llm_label": "METH",
+      "count": 560
+    },
+    {
+      "heuristic_label": "RESU",
+      "llm_label": "DISC",
+      "count": 509
+    },
+    {
+      "heuristic_label": "BACK",
+      "llm_label": "METH",
+      "count": 487
+    },
+    {
+      "heuristic_label": "CONC",
+      "llm_label": "DISC",
+      "count": 439
+    },
+    {
+      "heuristic_label": "LIM",
+      "llm_label": "METH",
+      "count": 421
+    },
+    {
+      "heuristic_label": "LIM",
+      "llm_label": "BACK",
+      "count": 404
+    },
+    {
+      "heuristic_label": "CONTR",
+      "llm_label": "METH",
+      "count": 392
+    },
+    {
+      "heuristic_label": "DISC",
+      "llm_label": "RESU",
+      "count": 390
+    },
+    {
+      "heuristic_label": "CONTR",
+      "llm_label": "DISC",
+      "count": 381
+    },
+    {
+      "heuristic_label": "METH",
+      "llm_label": "BACK",
+      "count": 345
+    },
+    {
+      "heuristic_label": "CONC",
+      "llm_label": "BACK",
+      "count": 311
+    },
+    {
+      "heuristic_label": "INTRO",
+      "llm_label": "DISC",
+      "count": 310
+    },
+    {
+      "heuristic_label": "DISC",
+      "llm_label": "BACK",
+      "count": 309
+    },
+    {
+      "heuristic_label": "BACK",
+      "llm_label": "DISC",
+      "count": 299
+    },
+    {
+      "heuristic_label": "RESU",
+      "llm_label": "METH",
+      "count": 265
+    },
+    {
+      "heuristic_label": "METH",
+      "llm_label": "RESU",
+      "count": 259
+    },
+    {
+      "heuristic_label": "CONC",
+      "llm_label": "RESU",
+      "count": 253
+    },
+    {
+      "heuristic_label": "CONC",
+      "llm_label": "METH",
+      "count": 224
+    },
+    {
+      "heuristic_label": "RESU",
+      "llm_label": "BACK",
+      "count": 203
+    },
+    {
+      "heuristic_label": "METH",
+      "llm_label": "DISC",
+      "count": 201
+    },
+    {
+      "heuristic_label": "DISC",
+      "llm_label": "METH",
+      "count": 199
+    },
+    {
+      "heuristic_label": "LIM",
+      "llm_label": "DISC",
+      "count": 190
+    },
+    {
+      "heuristic_label": "CONTR",
+      "llm_label": "RESU",
+      "count": 178
+    },
+    {
+      "heuristic_label": "LIM",
+      "llm_label": "RESU",
+      "count": 169
+    },
+    {
+      "heuristic_label": "CONTR",
+      "llm_label": "",
+      "count": 136
+    },
+    {
+      "heuristic_label": "INTRO",
+      "llm_label": "INTRO",
+      "count": 135
+    },
+    {
+      "heuristic_label": "INTRO",
+      "llm_label": "RESU",
+      "count": 132
+    },
+    {
+      "heuristic_label": "INTRO",
+      "llm_label": "",
+      "count": 132
+    },
+    {
+      "heuristic_label": "BACK",
+      "llm_label": "",
+      "count": 128
+    },
+    {
+      "heuristic_label": "METH",
+      "llm_label": "",
+      "count": 128
+    },
+    {
+      "heuristic_label": "LIM",
+      "llm_label": "",
+      "count": 125
+    },
+    {
+      "heuristic_label": "RESU",
+      "llm_label": "",
+      "count": 124
+    }
+  ]
+}

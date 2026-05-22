@@ -1,0 +1,327 @@
+{
+  "global": {
+    "rows": 1599,
+    "changed_rows": 755,
+    "changed_pct": 47.217,
+    "unchanged_rows": 844,
+    "unchanged_pct": 52.783
+  },
+  "by_silver_label": [
+    {
+      "silver_label": "BACK",
+      "rows": 397,
+      "changed_rows": 150,
+      "changed_pct": 37.7834,
+      "unchanged_rows": 247,
+      "unchanged_pct": 62.2166
+    },
+    {
+      "silver_label": "METH",
+      "rows": 367,
+      "changed_rows": 142,
+      "changed_pct": 38.6921,
+      "unchanged_rows": 225,
+      "unchanged_pct": 61.3079
+    },
+    {
+      "silver_label": "DISC",
+      "rows": 325,
+      "changed_rows": 227,
+      "changed_pct": 69.8462,
+      "unchanged_rows": 98,
+      "unchanged_pct": 30.1538
+    },
+    {
+      "silver_label": "RESU",
+      "rows": 238,
+      "changed_rows": 82,
+      "changed_pct": 34.4538,
+      "unchanged_rows": 156,
+      "unchanged_pct": 65.5462
+    },
+    {
+      "silver_label": "CONC",
+      "rows": 117,
+      "changed_rows": 72,
+      "changed_pct": 61.5385,
+      "unchanged_rows": 45,
+      "unchanged_pct": 38.4615
+    },
+    {
+      "silver_label": "LIM",
+      "rows": 78,
+      "changed_rows": 23,
+      "changed_pct": 29.4872,
+      "unchanged_rows": 55,
+      "unchanged_pct": 70.5128
+    },
+    {
+      "silver_label": "INTRO",
+      "rows": 57,
+      "changed_rows": 40,
+      "changed_pct": 70.1754,
+      "unchanged_rows": 17,
+      "unchanged_pct": 29.8246
+    },
+    {
+      "silver_label": "CONTR",
+      "rows": 20,
+      "changed_rows": 19,
+      "changed_pct": 95.0,
+      "unchanged_rows": 1,
+      "unchanged_pct": 5.0
+    }
+  ],
+  "top_transitions": [
+    {
+      "silver_label": "BACK",
+      "gold_label": "BACK",
+      "count": 247
+    },
+    {
+      "silver_label": "METH",
+      "gold_label": "METH",
+      "count": 225
+    },
+    {
+      "silver_label": "RESU",
+      "gold_label": "RESU",
+      "count": 156
+    },
+    {
+      "silver_label": "DISC",
+      "gold_label": "DISC",
+      "count": 98
+    },
+    {
+      "silver_label": "DISC",
+      "gold_label": "RESU",
+      "count": 88
+    },
+    {
+      "silver_label": "DISC",
+      "gold_label": "BACK",
+      "count": 83
+    },
+    {
+      "silver_label": "METH",
+      "gold_label": "BACK",
+      "count": 79
+    },
+    {
+      "silver_label": "LIM",
+      "gold_label": "LIM",
+      "count": 55
+    },
+    {
+      "silver_label": "CONC",
+      "gold_label": "CONC",
+      "count": 45
+    },
+    {
+      "silver_label": "BACK",
+      "gold_label": "DISC",
+      "count": 42
+    },
+    {
+      "silver_label": "BACK",
+      "gold_label": "RESU",
+      "count": 39
+    },
+    {
+      "silver_label": "BACK",
+      "gold_label": "METH",
+      "count": 37
+    },
+    {
+      "silver_label": "RESU",
+      "gold_label": "DISC",
+      "count": 33
+    },
+    {
+      "silver_label": "METH",
+      "gold_label": "RESU",
+      "count": 31
+    },
+    {
+      "silver_label": "RESU",
+      "gold_label": "METH",
+      "count": 28
+    },
+    {
+      "silver_label": "CONC",
+      "gold_label": "RESU",
+      "count": 25
+    },
+    {
+      "silver_label": "DISC",
+      "gold_label": "CONC",
+      "count": 24
+    },
+    {
+      "silver_label": "CONC",
+      "gold_label": "DISC",
+      "count": 21
+    },
+    {
+      "silver_label": "DISC",
+      "gold_label": "METH",
+      "count": 20
+    },
+    {
+      "silver_label": "INTRO",
+      "gold_label": "BACK",
+      "count": 18
+    },
+    {
+      "silver_label": "BACK",
+      "gold_label": "INTRO",
+      "count": 17
+    },
+    {
+      "silver_label": "INTRO",
+      "gold_label": "INTRO",
+      "count": 17
+    },
+    {
+      "silver_label": "METH",
+      "gold_label": "INTRO",
+      "count": 17
+    },
+    {
+      "silver_label": "RESU",
+      "gold_label": "BACK",
+      "count": 14
+    },
+    {
+      "silver_label": "INTRO",
+      "gold_label": "METH",
+      "count": 12
+    },
+    {
+      "silver_label": "CONTR",
+      "gold_label": "BACK",
+      "count": 11
+    },
+    {
+      "silver_label": "CONC",
+      "gold_label": "BACK",
+      "count": 11
+    },
+    {
+      "silver_label": "METH",
+      "gold_label": "DISC",
+      "count": 9
+    },
+    {
+      "silver_label": "BACK",
+      "gold_label": "CONC",
+      "count": 8
+    },
+    {
+      "silver_label": "CONC",
+      "gold_label": "INTRO",
+      "count": 7
+    },
+    {
+      "silver_label": "DISC",
+      "gold_label": "INTRO",
+      "count": 7
+    },
+    {
+      "silver_label": "LIM",
+      "gold_label": "BACK",
+      "count": 6
+    },
+    {
+      "silver_label": "CONC",
+      "gold_label": "METH",
+      "count": 6
+    },
+    {
+      "silver_label": "RESU",
+      "gold_label": "CONC",
+      "count": 6
+    },
+    {
+      "silver_label": "LIM",
+      "gold_label": "METH",
+      "count": 5
+    },
+    {
+      "silver_label": "INTRO",
+      "gold_label": "DISC",
+      "count": 4
+    },
+    {
+      "silver_label": "LIM",
+      "gold_label": "CONC",
+      "count": 3
+    },
+    {
+      "silver_label": "BACK",
+      "gold_label": "LIM",
+      "count": 3
+    },
+    {
+      "silver_label": "INTRO",
+      "gold_label": "RESU",
+      "count": 3
+    },
+    {
+      "silver_label": "LIM",
+      "gold_label": "INTRO",
+      "count": 3
+    },
+    {
+      "silver_label": "BACK",
+      "gold_label": "CONTR",
+      "count": 2
+    },
+    {
+      "silver_label": "CONTR",
+      "gold_label": "RESU",
+      "count": 2
+    },
+    {
+      "silver_label": "LIM",
+      "gold_label": "RESU",
+      "count": 2
+    },
+    {
+      "silver_label": "METH",
+      "gold_label": "LIM",
+      "count": 2
+    },
+    {
+      "silver_label": "LIM",
+      "gold_label": "DISC",
+      "count": 2
+    },
+    {
+      "silver_label": "DISC",
+      "gold_label": "CONTR",
+      "count": 2
+    },
+    {
+      "silver_label": "CONTR",
+      "gold_label": "DISC",
+      "count": 2
+    },
+    {
+      "silver_label": "CONC",
+      "gold_label": "CONTR",
+      "count": 2
+    },
+    {
+      "silver_label": "CONTR",
+      "gold_label": "CONC",
+      "count": 2
+    },
+    {
+      "silver_label": "DISC",
+      "gold_label": "LIM",
+      "count": 2
+    }
+  ]
+}
