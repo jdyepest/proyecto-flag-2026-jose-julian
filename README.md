@@ -299,7 +299,7 @@ PORT=5000       # Puerto del servidor (por defecto: 5000)
 DEBUG=1         # Modo debug de Flask (por defecto: 1)
 ```
 
-### Modelos encoder (Task1 + Task2) vía MLflow (S3)
+### Modelos encoder (Task1 + Task2) vía MLflow (S3) o path local
 
 Para evitar commitear archivos grandes (por ejemplo `model.safetensors`) en GitHub, puedes subir los modelos a MLflow y referenciarlos por URI `runs:/...`.
 
@@ -308,24 +308,32 @@ Para evitar commitear archivos grandes (por ejemplo `model.safetensors`) en GitH
 MODEL_CACHE_DIR=artifacts/model_cache
 ```
 
-**Task1 (segmentación retórica):**
+**Configuración recomendada: una variable por tarea**
+```bash
+TASK1_ENCODER_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
+TASK2_ENCODER_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
+```
+
+**Alternativa local por tarea**
+```bash
+TASK1_ENCODER_MODEL_PATH="Modelos/task1/.../artifacts/model"
+TASK2_ENCODER_MODEL_PATH="Modelos/task2/.../artifacts/hf_model"
+TASK2_ENCODER_THRESHOLD=0.5
+```
+
+**Compatibilidad por variante (`roberta` / `scibert`)**
 ```bash
 TASK1_ENCODER_ROBERTA_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
 TASK1_ENCODER_SCIBERT_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
-```
-
-**Task2 (contribuciones binario):**
-```bash
 TASK2_ENCODER_ROBERTA_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
 TASK2_ENCODER_SCIBERT_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
-TASK2_ENCODER_THRESHOLD=0.5
 ```
 
 **Nota (S3 directo, sin servidor MLflow):**
 
 También puedes apuntar directamente a un prefix en S3, por ejemplo:
 ```bash
-TASK2_ENCODER_ROBERTA_MLFLOW_MODEL_URI="s3://<bucket>/<prefix>/hf_model"
+TASK2_ENCODER_MLFLOW_MODEL_URI="s3://<bucket>/<prefix>/hf_model"
 ```
 El backend soporta descarga desde S3 sin listar el bucket (útil si tu IAM tiene `Deny` para `s3:ListBucket` pero permite `s3:GetObject`).
 

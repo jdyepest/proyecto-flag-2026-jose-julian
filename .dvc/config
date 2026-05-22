@@ -1,5 +1,6 @@
 [core]
     remote = storage
+    site_cache_dir = .dvc/site_cache
 ['remote "s3"']
     url = s3://bucket-artifacts-models-2026-03-2/dvc
 ['remote "storage"']

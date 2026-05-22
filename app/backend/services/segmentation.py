@@ -523,9 +523,10 @@ def _normalize_encoder_label(label: str) -> str:
 
 def _load_encoder_model(encoder_variant: str):
     """
-    Carga el modelo RoBERTa local (RobertaForSequenceClassification) desde:
+    Carga el encoder local de Task1 desde:
       - env TASK1_ENCODER_MODEL_PATH, o
-      - src/models/roberta_bne_task1 (por defecto)
+      - env TASK1_ENCODER_<VARIANT>_MODEL_PATH, o
+      - src/models/<variant> (por defecto)
 
     Requiere dependencias: torch, transformers, safetensors.
     """
@@ -543,7 +544,8 @@ def _load_encoder_model(encoder_variant: str):
     if not model_path.exists():
         raise FileNotFoundError(
             f"No se encontró el modelo encoder en {model_path}. "
-            "Define TASK1_ENCODER_MODEL_PATH apuntando al directorio del modelo."
+            "Define TASK1_ENCODER_MODEL_PATH o TASK1_ENCODER_<VARIANT>_MODEL_PATH "
+            "apuntando al directorio del modelo."
         )
 
     has_weights = any(
@@ -584,12 +586,13 @@ def _resolve_task1_encoder_model_path(encoder_variant: str) -> Path:
     Resuelve el path del encoder para Task1.
 
     Fuentes (prioridad):
-      1) TASK1_ENCODER_<VARIANT>_MLFLOW_MODEL_URI (descarga a cache via mlflow)
-         TASK1_ENCODER_MLFLOW_MODEL_URI (legacy)
+      1) TASK1_ENCODER_MLFLOW_MODEL_URI (recomendado si usas una sola variable por tarea)
+         TASK1_ENCODER_<VARIANT>_MLFLOW_MODEL_URI
          e.g.:
            runs:/<run_id>/hf_model
            models:/scitext-task1-encoder/Production
-      2) TASK1_ENCODER_<VARIANT>_MODEL_PATH (path local) / TASK1_ENCODER_MODEL_PATH (legacy)
+      2) TASK1_ENCODER_MODEL_PATH (recomendado si usas una sola variable por tarea)
+         TASK1_ENCODER_<VARIANT>_MODEL_PATH
       3) src/models/<variant> (default)
     """
     variant = (encoder_variant or "roberta").strip().lower()
@@ -599,15 +602,15 @@ def _resolve_task1_encoder_model_path(encoder_variant: str) -> Path:
     mlflow_var = f"TASK1_ENCODER_{variant.upper()}_MLFLOW_MODEL_URI"
     path_var = f"TASK1_ENCODER_{variant.upper()}_MODEL_PATH"
 
-    mlflow_uri = (os.environ.get(mlflow_var) or "").strip()
+    mlflow_uri = (os.environ.get("TASK1_ENCODER_MLFLOW_MODEL_URI") or "").strip()
     if not mlflow_uri:
-        mlflow_uri = (os.environ.get("TASK1_ENCODER_MLFLOW_MODEL_URI") or "").strip()
+        mlflow_uri = (os.environ.get(mlflow_var) or "").strip()
     if mlflow_uri:
         return _download_model_from_mlflow(mlflow_uri)
 
-    model_dir = (os.environ.get(path_var) or "").strip()
+    model_dir = (os.environ.get("TASK1_ENCODER_MODEL_PATH") or "").strip()
     if not model_dir:
-        model_dir = (os.environ.get("TASK1_ENCODER_MODEL_PATH") or "").strip()
+        model_dir = (os.environ.get(path_var) or "").strip()
     if not model_dir:
         default_dir = "roberta_bne_task1" if variant == "roberta" else "scibert_task1"
         model_dir = str(_repo_root() / "src" / "models" / default_dir)

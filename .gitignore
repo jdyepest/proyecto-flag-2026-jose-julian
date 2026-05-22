@@ -11,10 +11,15 @@ __pycache__/
 clean_parquet/
 datasets/
 *.safetensors
+*.bin
+*.pkl
 model_cache/
+Modelos/**
+!Modelos/README.md
 artifacts/
 !/artifacts/
 !/artifacts/eval_results/
 !/artifacts/eval_results/**
 ~/
 mlruns_recovered/
+/Modelos

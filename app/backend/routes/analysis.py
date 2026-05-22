@@ -93,8 +93,8 @@ def analyze():
             {
                 "error": (
                     "Task2 encoder no configurado para contribuciones. "
-                    "Define TASK2_ENCODER_<VARIANT>_MLFLOW_MODEL_URI (runs:/.../hf_model) "
-                    "o usa model='llm'/'api'."
+                    "Define TASK2_ENCODER_MODEL_PATH o TASK2_ENCODER_MLFLOW_MODEL_URI "
+                    "(o sus variantes por modelo) o usa model='llm'/'api'."
                 )
             }
         ), 400

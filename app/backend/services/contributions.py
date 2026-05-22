@@ -504,10 +504,10 @@ def task2_encoder_is_configured(encoder_variant: str) -> bool:
     mlflow_var = f"TASK2_ENCODER_{variant.upper()}_MLFLOW_MODEL_URI"
     path_var = f"TASK2_ENCODER_{variant.upper()}_MODEL_PATH"
 
-    if (os.environ.get(mlflow_var) or "").strip() or (os.environ.get("TASK2_ENCODER_MLFLOW_MODEL_URI") or "").strip():
+    if (os.environ.get("TASK2_ENCODER_MLFLOW_MODEL_URI") or "").strip() or (os.environ.get(mlflow_var) or "").strip():
         return True
 
-    model_dir = (os.environ.get(path_var) or "").strip() or (os.environ.get("TASK2_ENCODER_MODEL_PATH") or "").strip()
+    model_dir = (os.environ.get("TASK2_ENCODER_MODEL_PATH") or "").strip() or (os.environ.get(path_var) or "").strip()
     if model_dir:
         return Path(model_dir).exists()
 
@@ -617,6 +617,16 @@ def _download_model_from_mlflow(model_uri: str, cache_prefix: str) -> Path:
 
 
 def _resolve_task2_encoder_model_path(encoder_variant: str) -> Path:
+    """
+    Resuelve el path del encoder para Task2.
+
+    Fuentes (prioridad):
+      1) TASK2_ENCODER_MLFLOW_MODEL_URI (recomendado si usas una sola variable por tarea)
+         TASK2_ENCODER_<VARIANT>_MLFLOW_MODEL_URI
+      2) TASK2_ENCODER_MODEL_PATH (recomendado si usas una sola variable por tarea)
+         TASK2_ENCODER_<VARIANT>_MODEL_PATH
+      3) src/models/<variant> (default)
+    """
     variant = (encoder_variant or "roberta").strip().lower()
     if variant not in {"roberta", "scibert"}:
         raise ValueError("encoder_variant inválido para Task2. Usa 'roberta' o 'scibert'.")
@@ -624,15 +634,15 @@ def _resolve_task2_encoder_model_path(encoder_variant: str) -> Path:
     mlflow_var = f"TASK2_ENCODER_{variant.upper()}_MLFLOW_MODEL_URI"
     path_var = f"TASK2_ENCODER_{variant.upper()}_MODEL_PATH"
 
-    mlflow_uri = (os.environ.get(mlflow_var) or "").strip()
+    mlflow_uri = (os.environ.get("TASK2_ENCODER_MLFLOW_MODEL_URI") or "").strip()
     if not mlflow_uri:
-        mlflow_uri = (os.environ.get("TASK2_ENCODER_MLFLOW_MODEL_URI") or "").strip()
+        mlflow_uri = (os.environ.get(mlflow_var) or "").strip()
     if mlflow_uri:
         return _download_model_from_mlflow(mlflow_uri, cache_prefix=f"task2_encoder_{variant}")
 
-    model_dir = (os.environ.get(path_var) or "").strip()
+    model_dir = (os.environ.get("TASK2_ENCODER_MODEL_PATH") or "").strip()
     if not model_dir:
-        model_dir = (os.environ.get("TASK2_ENCODER_MODEL_PATH") or "").strip()
+        model_dir = (os.environ.get(path_var) or "").strip()
     if model_dir:
         return Path(model_dir)
 
@@ -643,8 +653,9 @@ def _resolve_task2_encoder_model_path(encoder_variant: str) -> Path:
         raise FileNotFoundError(
             "No hay modelo encoder de Task2 configurado.\n"
             "Configura una de estas variables:\n"
-            f"  - {mlflow_var} (recomendado, runs:/.../hf_model)\n"
-            f"  - {path_var} (path local al modelo exportado)\n"
+            "  - TASK2_ENCODER_MLFLOW_MODEL_URI (runs:/.../hf_model)\n"
+            "  - TASK2_ENCODER_MODEL_PATH (path local al modelo exportado)\n"
+            f"  - {mlflow_var} / {path_var} (compatibilidad por variante)\n"
             "O usa model='llm' / model='api' para contribuciones."
         )
     return model_path
