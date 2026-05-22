@@ -8,6 +8,7 @@ Este repositorio corresponde a un proyecto MAIA cuyo objetivo es desarrollar una
 
 - Repositorio GitHub: [jdyepest/proyecto-flag-2026-jose-julian](https://github.com/jdyepest/proyecto-flag-2026-jose-julian)
 - Aplicación desplegada: [http://100.52.250.51:5000/](http://100.52.250.51:5000/)
+- Video de demostración: [Google Drive](https://drive.google.com/file/d/1TwTTJRdqqw3XYvbOdjid60hSO5KLIH5l/view?usp=sharing)
 - Respaldo de runs/modelos en Drive (1): [carpeta](https://drive.google.com/drive/folders/1udVwPnN5Ep80qQ7ck2DjayhqiktzHWat?usp=sharing)
 - Respaldo de runs/modelos en Drive (2): [carpeta](https://drive.google.com/drive/folders/1BWNaBJQ4-ktDpig4SMOlpVp0NffhKmTg?usp=sharing)
 
