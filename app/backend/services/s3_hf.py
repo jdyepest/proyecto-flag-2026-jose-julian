@@ -29,9 +29,18 @@ def _download_object(s3, bucket: str, key: str, dst_path: Path) -> bool:
     """
     dst_path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        s3.download_file(bucket, key, str(dst_path))
+        resp = s3.get_object(Bucket=bucket, Key=key)
+        body = resp["Body"]
+        with dst_path.open("wb") as f:
+            while True:
+                chunk = body.read(1024 * 1024)
+                if not chunk:
+                    break
+                f.write(chunk)
         return True
     except Exception as e:  # noqa: BLE001
+        if dst_path.exists():
+            dst_path.unlink(missing_ok=True)
         # Best-effort: detect missing object without requiring ListBucket.
         code = getattr(getattr(e, "response", None), "get", lambda _k, _d=None: _d)("Error", {}).get("Code")  # type: ignore[attr-defined]
         if code in {"404", "NoSuchKey", "NotFound"}:
@@ -145,4 +154,3 @@ def download_hf_model_from_s3(prefix_uri: str, dst_dir: str | Path) -> Path:
             raise FileNotFoundError(f"Shard faltante según {index_name}: s3://{bucket}/{prefix}/{shard}")
 
     return dst
-

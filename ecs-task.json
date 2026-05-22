@@ -2,39 +2,77 @@
   "family": "scitext-task",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
-  "cpu": "1024",
-  "memory": "2048",
-  "executionRoleArn": "arn:aws:iam::713279244798:role/labRole",
-  "taskRoleArn": "arn:aws:iam::713279244798:role/labRole",
+  "cpu": "8192",
+  "memory": "24576",
+  "executionRoleArn": "arn:aws:iam::468523636071:role/LabRole",
+  "taskRoleArn": "arn:aws:iam::468523636071:role/LabRole",
   "containerDefinitions": [
     {
       "name": "mlflow",
-      "image": "713279244798.dkr.ecr.us-east-1.amazonaws.com/scitext-mlflow:latest",
+      "image": "468523636071.dkr.ecr.us-east-1.amazonaws.com/scitext-mlflow:latest",
+      "cpu": 1024,
+      "memory": 6144,
       "portMappings": [{ "containerPort": 5006, "protocol": "tcp" }],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/scitext-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "mlflow",
+          "awslogs-create-group": "true"
+        }
+      },
       "essential": true
     },
     {
       "name": "ollama",
-      "image": "713279244798.dkr.ecr.us-east-1.amazonaws.com/scitext-ollama-proxy:latest",
+      "image": "468523636071.dkr.ecr.us-east-1.amazonaws.com/scitext-ollama-proxy:latest",
+      "cpu": 1024,
+      "memory": 2048,
       "portMappings": [{ "containerPort": 11434, "protocol": "tcp" }],
       "environment": [
-        { "name": "OPENROUTER_API_KEY", "value": "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" },
+        { "name": "OPENROUTER_API_KEY", "value": "REPLACE_WITH_OPENROUTER_API_KEY" },
         { "name": "OPENROUTER_MODEL", "value": "meta-llama/llama-3.1-8b-instruct" },
-        { "name": "OPENROUTER_PROVIDER_ONLY", "value": "open-inference" },
-        { "name": "OPENROUTER_QUANTIZATIONS", "value": "int8" },
+        { "name": "OPENROUTER_PROVIDER_ONLY", "value": "" },
+        { "name": "OPENROUTER_QUANTIZATIONS", "value": "" },
         { "name": "OPENROUTER_ALLOW_FALLBACKS", "value": "0" }
       ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/scitext-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ollama",
+          "awslogs-create-group": "true"
+        }
+      },
       "essential": true
     },
     {
       "name": "backend",
-      "image": "713279244798.dkr.ecr.us-east-1.amazonaws.com/scitext-backend:latest",
+      "image": "468523636071.dkr.ecr.us-east-1.amazonaws.com/scitext-backend:latest",
+      "cpu": 6144,
+      "memory": 12288,
       "portMappings": [{ "containerPort": 5000, "protocol": "tcp" }],
       "environment": [
         { "name": "PORT", "value": "5000" },
         { "name": "MLFLOW_TRACKING_URI", "value": "http://127.0.0.1:5006" },
-        { "name": "OLLAMA_BASE_URL", "value": "http://127.0.0.1:11434" }
+        { "name": "OLLAMA_BASE_URL", "value": "http://127.0.0.1:11434" },
+        { "name": "MODEL_CACHE_DIR", "value": "artifacts/model_cache" },
+        { "name": "TASK1_ENCODER_SCIBERT_MLFLOW_MODEL_URI", "value": "s3://bucket-artifacts-models-2026-03-2/mlflow/3/1b85859765734a60a77561e348e54a88/artifacts/hf_model" },
+        { "name": "TASK1_ENCODER_ROBERTA_MLFLOW_MODEL_URI", "value": "s3://bucket-artifacts-models-2026-03-2/mlflow/3/1b85859765734a60a77561e348e54a88/artifacts/hf_model" },
+        { "name": "TASK2_ENCODER_ROBERTA_MLFLOW_MODEL_URI", "value": "s3://bucket-artifacts-models-2026-03-2/mlflow/3/de2efaa6be0c41c7b8d2e2904ae9c729/artifacts/hf_model" },
+        { "name": "TASK2_ENCODER_MLFLOW_MODEL_URI", "value": "s3://bucket-artifacts-models-2026-03-2/mlflow/3/de2efaa6be0c41c7b8d2e2904ae9c729/artifacts/hf_model" }
       ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/scitext-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "backend",
+          "awslogs-create-group": "true"
+        }
+      },
       "essential": true
     }
   ]

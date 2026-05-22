@@ -220,7 +220,9 @@ docker build -f app/backend/Dockerfile -t scitext-backend . \
   --build-arg AWS_ACCESS_KEY_ID=... \
   --build-arg AWS_SECRET_ACCESS_KEY=... \
   --build-arg AWS_SESSION_TOKEN=... \
-  --build-arg AWS_DEFAULT_REGION=us-east-1
+  --build-arg AWS_DEFAULT_REGION=us-east-1 \
+  --build-arg TASK1_ENCODER_MLFLOW_MODEL_URI=s3://<bucket>/<prefix-task1>/hf_model \
+  --build-arg TASK2_ENCODER_MLFLOW_MODEL_URI=s3://<bucket>/<prefix-task2>/hf_model
 
 # Ejecutar (el proxy OpenRouter corre aparte en :11434)
 docker run --rm -p 5000:5000 \
@@ -236,6 +238,11 @@ docker compose up --build
 ```
 
 Antes de levantar con Docker, asegúrate de definir `OPENROUTER_API_KEY` en `.env`.
+
+Si `TASK1_ENCODER_MLFLOW_MODEL_URI` o `TASK2_ENCODER_MLFLOW_MODEL_URI` apuntan a
+`s3://...`, el build del backend los precarga en `MODEL_CACHE_DIR` para evitar la
+descarga costosa durante la primera request. URIs `runs:/...` o `models:/...` no
+se precargan en build.
 
 > Nota: La imagen del backend copia `.env` dentro del contenedor (por simplicidad).
 > En ECS lo ideal es mover esas variables a la Task Definition.
