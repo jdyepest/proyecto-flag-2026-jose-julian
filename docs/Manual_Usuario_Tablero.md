@@ -334,7 +334,7 @@ Si tienes problemas, contacta al equipo responsable del despliegue y comparte:
 ## 12. Referencias
 
 - Aplicación desplegada: `http://100.52.250.51:5000/`
-- Repositorio del proyecto: `https://github.com/jdyepest/entrega_2_micropryecto`
+- Repositorio del proyecto: `https://github.com/jdyepest/proyecto-flag-2026-jose-julian`
 
 ---
 

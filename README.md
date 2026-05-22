@@ -6,7 +6,7 @@ Este repositorio corresponde a un proyecto MAIA cuyo objetivo es desarrollar una
 
 ## Enlaces de entrega
 
-- Repositorio GitHub: [jdyepest/entrega_2_micropryecto](https://github.com/jdyepest/entrega_2_micropryecto)
+- Repositorio GitHub: [jdyepest/proyecto-flag-2026-jose-julian](https://github.com/jdyepest/proyecto-flag-2026-jose-julian)
 - Aplicación desplegada: [http://100.52.250.51:5000/](http://100.52.250.51:5000/)
 - Respaldo de runs/modelos en Drive (1): [carpeta](https://drive.google.com/drive/folders/1udVwPnN5Ep80qQ7ck2DjayhqiktzHWat?usp=sharing)
 - Respaldo de runs/modelos en Drive (2): [carpeta](https://drive.google.com/drive/folders/1BWNaBJQ4-ktDpig4SMOlpVp0NffhKmTg?usp=sharing)
@@ -423,8 +423,8 @@ sudo apt-get install -y python3 python3-venv python3-pip
 
 2) Clonar repo y crear venv:
 ```bash
-git clone https://github.com/jdyepest/entrega_2_micropryecto.git
-cd entrega_2_micropryecto/app/backend
+git clone https://github.com/jdyepest/proyecto-flag-2026-jose-julian.git
+cd proyecto-flag-2026-jose-julian/app/backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
