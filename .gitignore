@@ -24,3 +24,4 @@ artifacts/
 ~/
 mlruns_recovered/
 /Modelos
+.dvc/site_cache/

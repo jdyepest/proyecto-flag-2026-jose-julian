@@ -1,8 +1,8 @@
 # Manual de Instalación — SciText-ES (Local y Docker)
 
-**Versión:** 1.1  \
+**Versión:** 1.2  \
 **Audiencia:** Equipo técnico que instala la app localmente (con o sin Docker).  \
-**Alcance:** Instalación completa de backend + frontend estático + proxy LLM + MLflow (opcional) + datos DVC.
+**Alcance:** Instalación completa de backend + frontend estático + proxy LLM + datos/modelos vía DVC o S3. MLflow queda como opción de compatibilidad.
 
 ---
 
@@ -22,8 +22,8 @@ cd /ruta/maia-proyecto-desarrollo-soluciones
 - Python 3.10+ (recomendado 3.11)
 - `pip`
 - Git
-- DVC (se instala desde `requirments.txt`)
-- (Opcional) MLflow si usarás modelos `encoder` vía `runs:/...` o `models:/...`
+- DVC (incluido en `requirments.txt`)
+- (Opcional) MLflow solo si usarás modelos `encoder` vía `runs:/...` o `models:/...`
 - (Opcional) Ollama o el proxy OpenRouter (`app/ollama`) si usarás `model=llm`
 
 ### 2.2 Con Docker
@@ -56,9 +56,13 @@ OPENROUTER_API_KEY=TU_API_KEY
 OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 
-# Encoder (Task1/Task2) vía MLflow o S3
-TASK1_ENCODER_ROBERTA_MLFLOW_MODEL_URI=runs:/<run_id>/hf_model
-TASK2_ENCODER_ROBERTA_MLFLOW_MODEL_URI=s3://<bucket>/.../hf_model
+# Encoder (Task1/Task2) recomendado: una variable por tarea
+TASK1_ENCODER_MLFLOW_MODEL_URI=s3://<bucket>/<prefix-task1>/hf_model
+TASK2_ENCODER_MLFLOW_MODEL_URI=s3://<bucket>/<prefix-task2>/hf_model
+
+# Alternativa local después de dvc pull
+# TASK1_ENCODER_MODEL_PATH=Modelos/task1/.../artifacts/model
+# TASK2_ENCODER_MODEL_PATH=Modelos/task2/.../artifacts/hf_model
 
 # AWS (necesario para DVC y/o S3)
 AWS_ACCESS_KEY_ID=TU_ACCESS_KEY
@@ -99,17 +103,24 @@ pip install -r requirments.txt
 
 Nota: el archivo global se llama `requirments.txt` (sin la segunda "e").
 
-3. Descargar datos con DVC.
+3. Descargar datos y modelos con DVC.
 
 ```bash
-dvc pull data_lake/clean_parquet.dvc data_lake/datasets.dvc
+dvc pull data_lake/clean_parquet.dvc data_lake/datasets.dvc Modelos.dvc
 ```
 
 Si `dvc pull` falla, verifica que `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` y `AWS_DEFAULT_REGION` estén definidos.
 
+Si no puedes descargar desde DVC o S3, usa los respaldos manuales en Drive y materializa la carpeta `Modelos/` localmente:
+
+- Respaldo 1: [Drive - runs/modelos (1)](https://drive.google.com/drive/folders/1udVwPnN5Ep80qQ7ck2DjayhqiktzHWat?usp=sharing)
+- Respaldo 2: [Drive - runs/modelos (2)](https://drive.google.com/drive/folders/1BWNaBJQ4-ktDpig4SMOlpVp0NffhKmTg?usp=sharing)
+
 4. Levantar servicios opcionales (según el modelo que uses).
 
-Si usarás `model=encoder` con MLflow, inicia MLflow en otra terminal:
+Si usarás `model=encoder` con `s3://...` directo o con `TASK*_ENCODER_MODEL_PATH`, no necesitas levantar MLflow.
+
+Solo si usarás URIs `runs:/...` o `models:/...`, inicia MLflow en otra terminal:
 
 ```bash
 mlflow server \
@@ -137,13 +148,15 @@ python app/backend/main.py
 
 Backend en: `http://localhost:5000`
 
+Nota: si `TASK1_ENCODER_MLFLOW_MODEL_URI` o `TASK2_ENCODER_MLFLOW_MODEL_URI` apuntan a `s3://...`, la primera inferencia descargará los artefactos al cache local y puede tardar más de lo normal.
+
 ---
 
 ## 5. Instalación CON Docker (local)
 
 1. Ajusta `REPO/.env` con las variables y rutas correctas para Docker.
 
-2. Verifica que las credenciales AWS estén definidas (necesarias para el `dvc pull` del build).
+2. Verifica que las credenciales AWS estén definidas (necesarias para el `dvc pull` del build o para descargar desde S3).
 
 3. Construye y levanta los servicios.
 
@@ -168,11 +181,11 @@ Servicios expuestos:
 
 ## 7. Solución de problemas
 
-- `dvc pull` falla: revisa credenciales AWS y el acceso al bucket.
-- `backend` responde 500 en `model=encoder`: revisa `TASK1_ENCODER_*` y `TASK2_ENCODER_*`.
+- `dvc pull` falla: revisa credenciales AWS, acceso al bucket y, si hace falta, usa los respaldos de Drive para poblar `Modelos/`.
+- `backend` responde 500 en `model=encoder`: revisa `TASK1_ENCODER_MLFLOW_MODEL_URI` y `TASK2_ENCODER_MLFLOW_MODEL_URI`, o confirma que `TASK1_ENCODER_MODEL_PATH` y `TASK2_ENCODER_MODEL_PATH` apunten a carpetas válidas dentro de `Modelos/`.
 - `model=llm` no responde: revisa `OLLAMA_BASE_URL` y que el proxy esté activo.
 - `model=api` falla: revisa `GEMINI_API_KEY`.
-- `MLflow no responde`: revisa `MLFLOW_TRACKING_URI` y el puerto `5006`.
+- `MLflow no responde`: revisa `MLFLOW_TRACKING_URI` y el puerto `5006` solo si decidiste usar `runs:/...` o `models:/...`.
 
 ---
 

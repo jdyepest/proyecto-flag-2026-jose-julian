@@ -8,6 +8,8 @@ Este repositorio corresponde a un microproyecto MAIA cuyo objetivo es desarrolla
 
 - Repositorio GitHub: [jdyepest/entrega_2_micropryecto](https://github.com/jdyepest/entrega_2_micropryecto)
 - Aplicación desplegada: [http://100.52.250.51:5000/](http://100.52.250.51:5000/)
+- Respaldo de runs/modelos en Drive (1): [carpeta](https://drive.google.com/drive/folders/1udVwPnN5Ep80qQ7ck2DjayhqiktzHWat?usp=sharing)
+- Respaldo de runs/modelos en Drive (2): [carpeta](https://drive.google.com/drive/folders/1BWNaBJQ4-ktDpig4SMOlpVp0NffhKmTg?usp=sharing)
 
 ## Propósito del repositorio
 
@@ -149,6 +151,10 @@ OPENROUTER_ALLOW_FALLBACKS=0                # opcional
 
 # Cache local (evita re-descargas de modelos)
 MODEL_CACHE_DIR=artifacts/model_cache
+
+# Encoder recomendado: una variable por tarea
+TASK1_ENCODER_MLFLOW_MODEL_URI="s3://<bucket>/<prefix-task1>/hf_model"
+TASK2_ENCODER_MLFLOW_MODEL_URI="s3://<bucket>/<prefix-task2>/hf_model"
 ```
 
 ### 2. Configurar AWS (para descargar modelos desde S3)
@@ -176,6 +182,11 @@ Desde la raíz del repositorio:
 ```bash
 dvc pull data_lake/datasets.dvc data_lake/clean_parquet.dvc Modelos.dvc
 ```
+
+Si no puedes usar DVC o no tienes acceso al bucket remoto, puedes usar los respaldos manuales de Drive y reconstruir `Modelos/` localmente:
+
+- Respaldo 1: [Drive - runs/modelos (1)](https://drive.google.com/drive/folders/1udVwPnN5Ep80qQ7ck2DjayhqiktzHWat?usp=sharing)
+- Respaldo 2: [Drive - runs/modelos (2)](https://drive.google.com/drive/folders/1BWNaBJQ4-ktDpig4SMOlpVp0NffhKmTg?usp=sharing)
 
 ### 4. Ejecutar la aplicación web (sin Docker)
 
@@ -214,9 +225,9 @@ pip install fastapi uvicorn httpx
 uvicorn app:app --host 0.0.0.0 --port 11434
 ```
 
-#### MLflow (opcional) — sin Docker
+#### MLflow (opcional, compatibilidad) — sin Docker
 
-Si usas `TASK1/TASK2_ENCODER_*_MLFLOW_MODEL_URI`, levanta el servidor MLflow:
+Si usas URIs `runs:/...` o `models:/...`, levanta el servidor MLflow. Para `s3://...` directo o `TASK*_ENCODER_MODEL_PATH`, no hace falta:
 
 ```bash
 # desde la raíz del repo
@@ -301,11 +312,12 @@ local. El backend ya permite CORS en `/api/*`.
 {
   "text": "Texto del artículo…",
   "model": "encoder | llm | api",
-  "tasks": ["segmentation", "contributions"],
-  "encoder_variant": "roberta | scibert"
+  "tasks": ["segmentation", "contributions"]
 }
 ```
 Devuelve segmentos etiquetados y fragmentos con contribuciones.
+
+`encoder_variant` sigue existiendo como parámetro opcional de compatibilidad, pero no es necesario para el flujo normal de la aplicación.
 
 **`GET /api/compare/<analysis_id>`**
 
@@ -330,11 +342,16 @@ PORT=5000       # Puerto del servidor (por defecto: 5000)
 DEBUG=1         # Modo debug de Flask (por defecto: 1)
 ```
 
-### Modelos encoder (Task1 + Task2) vía MLflow (S3) o path local
+### Modelos encoder (Task1 + Task2): S3 directo, path local o MLflow
 
-Para evitar commitear archivos grandes (por ejemplo `model.safetensors`) en GitHub, puedes subir los modelos a MLflow y referenciarlos por URI `runs:/...`.
+Para evitar commitear archivos grandes (por ejemplo `model.safetensors`) en GitHub, este repo prioriza dos estrategias:
 
-Si en vez de un servidor MLflow usas rutas `s3://...` directas:
+- `s3://...` directo con una variable por tarea
+- `Modelos/` local después de `dvc pull Modelos.dvc`
+
+Las URIs `runs:/...` o `models:/...` se mantienen como compatibilidad, pero no son el flujo principal de instalación.
+
+Si usas rutas `s3://...` directas:
 
 - en ejecución normal, la descarga ocurre en la primera corrida que necesite el modelo
 - en Docker, esa descarga puede impactar el build o el primer arranque según cómo materialices el cache
@@ -346,8 +363,8 @@ MODEL_CACHE_DIR=artifacts/model_cache
 
 **Configuración recomendada: una variable por tarea**
 ```bash
-TASK1_ENCODER_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
-TASK2_ENCODER_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
+TASK1_ENCODER_MLFLOW_MODEL_URI="s3://<bucket>/<prefix-task1>/hf_model"
+TASK2_ENCODER_MLFLOW_MODEL_URI="s3://<bucket>/<prefix-task2>/hf_model"
 ```
 
 **Alternativa local por tarea**
@@ -364,6 +381,13 @@ TASK1_ENCODER_SCIBERT_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
 TASK2_ENCODER_ROBERTA_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
 TASK2_ENCODER_SCIBERT_MLFLOW_MODEL_URI="runs:/<run_id>/hf_model"
 ```
+
+**Fallback manual si no tienes DVC o acceso al bucket remoto:**
+
+Puedes reconstruir `Modelos/` a partir de estas carpetas de respaldo:
+
+- [Drive - runs/modelos (1)](https://drive.google.com/drive/folders/1udVwPnN5Ep80qQ7ck2DjayhqiktzHWat?usp=sharing)
+- [Drive - runs/modelos (2)](https://drive.google.com/drive/folders/1BWNaBJQ4-ktDpig4SMOlpVp0NffhKmTg?usp=sharing)
 
 **Nota (S3 directo, sin servidor MLflow):**
 

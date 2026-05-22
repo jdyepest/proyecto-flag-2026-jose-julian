@@ -1,6 +1,6 @@
 # Manual de Usuario — Tablero SciText-ES
 
-**Versión:** 1.0  \
+**Versión:** 1.1  \
 **Audiencia:** Usuarios finales que consumen el tablero ya desplegado (sin instalación local).  \
 **Alcance:** Uso del tablero para análisis de documentos científicos en español.
 
@@ -59,10 +59,11 @@ Además del tablero, la API se puede consumir directamente (por ejemplo desde **
 {
   "text": "En este trabajo presentamos un sistema automático para segmentar secciones retóricas en artículos científicos en español. El objetivo es facilitar la recuperación de información y la comparación de métodos.\n\nNuestra metodología combina un modelo encoder con un clasificador ligero. Evaluamos en un corpus de artículos y reportamos mejoras en F1.",
   "model": "encoder",
-  "tasks": ["segmentation", "contributions"],
-  "encoder_variant": "roberta"
+  "tasks": ["segmentation", "contributions"]
 }
 ```
+
+Nota: `encoder_variant` existe como parámetro técnico opcional en algunos despliegues, pero para el uso normal del tablero no hace falta enviarlo.
 
 **Imagen 1.1 — Ejemplo en Postman**
 
@@ -74,7 +75,7 @@ Además del tablero, la API se puede consumir directamente (por ejemplo desde **
 {
   "id": "b8b2e9b1-3d3e-4d2d-9c85-1c2f4b7b3a21",
   "model": "encoder",
-  "model_name": "Encoder (BETO/RoBERTa)",
+  "model_name": "Encoder configurado en el despliegue",
   "segmentation": {
     "segments": [
       {
@@ -181,13 +182,13 @@ En conclusión, el sistema propuesto mejora la identificación de secciones ret�
 
 ### 3.2 Selección de modelo
 
-- **Encoder (BETO/RoBERTa)**
+- **Encoder**
   - Rápido y bajo costo.
   - Ideal para pruebas rápidas.
 
-- **Llama 3.3 70B Instruct (OpenRouter)**
-  - Alta calidad, pero sujeto a latencia y límites de API.
-  - Recomendado si necesitas mejor desempeño.
+- **LLM vía OpenRouter**
+  - Mejor capacidad de razonamiento, pero sujeto a latencia y límites de API.
+  - Recomendado si necesitas una segunda opinión más flexible.
 
 - **API Comercial**
   - Máxima calidad (si está habilitada).
@@ -298,7 +299,7 @@ En la vista de comparación, puedes usar **Exportar reporte** para guardar un JS
 ### 8.3 “Rate limited” (OpenRouter)
 - El modelo gratuito está temporalmente limitado.
 - Espera y reintenta o cambia de modelo.
-- **Recomendación:** deja unos minutos entre ejecuciones cuando uses el modelo Llama 3.3 70B Instruct (OpenRouter free).
+- **Recomendación:** deja unos minutos entre ejecuciones cuando uses el modelo LLM vía OpenRouter.
 
 ---
 
@@ -307,7 +308,7 @@ En la vista de comparación, puedes usar **Exportar reporte** para guardar un JS
 - Usa textos con **varios párrafos** y contenido académico real.
 - Evita textos demasiado cortos o sin estructura.
 - Si necesitas rapidez, usa **Encoder**.
-- Para calidad, usa **Llama 3.3 70B Instruct** (cuando haya disponibilidad).
+- Si necesitas una respuesta más flexible y puedes tolerar más latencia, usa **LLM vía OpenRouter**.
 
 ---
 
