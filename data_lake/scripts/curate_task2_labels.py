@@ -84,7 +84,7 @@ def safe_float(v, default: float = 0.0) -> float:
 
 def parse_json_loose(text: str) -> Dict:
     """
-    Gemini a veces devuelve JSON rodeado por ```json ...```.
+    El modelo a veces devuelve JSON rodeado por ```json ...```.
     Parseamos de forma tolerante.
     """
     t = (text or "").strip()
@@ -172,14 +172,14 @@ def call_model(client: genai.Client, model: str, batch_rows: List[Dict], max_ret
             time.sleep(backoff)
             backoff = min(backoff * 2, 20)
 
-    raise RuntimeError(f"Gemini call failed after {max_retries} retries: {last_err}")
+    raise RuntimeError(f"Model call failed after {max_retries} retries: {last_err}")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input_csv", required=True, help="CSV con columnas: fragment_id,text (+ silver_* opcional)")
-    ap.add_argument("--output_csv", required=True, help="Output CSV con etiquetas gold (LLM)")
-    ap.add_argument("--model", default="gemini-2.5-flash", help="e.g. gemini-2.0-flash, gemini-2.5-flash")
+    ap.add_argument("--output_csv", required=True, help="Output CSV con etiquetas gold revisadas")
+    ap.add_argument("--model", default="gemini-2.5-flash", help="Modelo de apoyo para la revision por lotes")
     ap.add_argument("--batch_size", type=int, default=25)
     ap.add_argument("--max_chars", type=int, default=3500)
     ap.add_argument("--resume", action="store_true")

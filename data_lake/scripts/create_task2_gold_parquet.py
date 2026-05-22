@@ -25,7 +25,7 @@ def parse_bool(v):
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--silver_parquet", required=True, help="Silver parquet (ya binarizado) de Task2")
-    ap.add_argument("--labeled_csv", required=True, help="CSV con salida del LLM/anotación (debe tener fragment_id,gold_is_contribution)")
+    ap.add_argument("--labeled_csv", required=True, help="CSV con salida de revision/anotacion (debe tener fragment_id,gold_is_contribution)")
     ap.add_argument("--out_parquet", required=True, help="Output gold parquet (mismas columnas que silver)")
     ap.add_argument(
         "--keep_unlabeled",
@@ -78,4 +78,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -4,6 +4,11 @@
 
 Este repositorio corresponde a un microproyecto MAIA cuyo objetivo es desarrollar una solución computacional para el análisis automático de documentos científicos en español, abordando (i) la segmentación y clasificación retórica y (ii) la extracción de contribuciones científicas.
 
+## Enlaces de entrega
+
+- Repositorio GitHub: [jdyepest/entrega_2_micropryecto](https://github.com/jdyepest/entrega_2_micropryecto)
+- Aplicación desplegada: [http://100.52.250.51:5000/](http://100.52.250.51:5000/)
+
 ## Propósito del repositorio
 
 Este proyecto implementa:
@@ -51,8 +56,8 @@ El enfoque es académico y experimental, orientado a entregar una solución func
 │           ├── api.js
 │           └── charts.js
 │
-├── datos/                         # 📊 Datos del proyecto
-│   └── core/                      # Corpus científico crudo (CORE)
+├── Datos/                         # 📊 Carpeta de entrega para datos
+│   └── README.md                  # Explica la estructura real y el uso con DVC
 │
 ├── src/                           # 🔧 Código fuente principal
 │   ├── preprocessing/             # Limpieza, normalización y segmentación
@@ -69,16 +74,22 @@ El enfoque es académico y experimental, orientado a entregar una solución func
 │   ├── metrics/                   # Métricas cuantitativas
 │   └── error_analysis/            # Análisis cualitativo de errores
 │
-├── notebooks/                     # 📓 Análisis exploratorio y pruebas
+├── notebooks/                     # 📓 Análisis exploratorio, entrenamiento y pruebas
+├── Modelos.dvc                    # 🤖 Modelos curados por tarea, trackeados con DVC
 ├── artifacts/                     # Artefactos generados
 ├── configs/                       # Configuraciones de modelos y experimentos
-├── data_lake/scripts/             # Scripts de data lake
+├── data_lake/                     # 📚 Estructura interna de datasets, manifiestos y scripts
+│   ├── datasets.dvc               # Tracking DVC de datasets tabulares
+│   ├── clean_parquet.dvc          # Tracking DVC de parquet limpio
+│   ├── clean_parquet/             # Bronze layer: datos crudos normalizados a Parquet
+│   ├── datasets/                  # Datasets de trabajo y conjuntos gold/silver
+│   ├── manifests/                 # Listados auxiliares del corpus
+│   ├── reports/                   # Reportes tabulares
+│   └── scripts/                   # Scripts de construcción y limpieza de datos
 │
 ├── .dvc/                          # Configuración DVC
 ├── .dvcignore
 ├── .gitignore
-├── datos.dvc                      # Tracking DVC del corpus
-├── Propuesta_Proyecto_PLN_FLAG.pdf
 └── README.md
 ```
 
@@ -87,11 +98,13 @@ El enfoque es académico y experimental, orientado a entregar una solución func
 | Carpeta | Descripción |
 |---------|-------------|
 | `app/` | Aplicación web con backend Flask y frontend vanilla. Interfaz para analizar textos y comparar modelos. |
-| `datos/` | Corpus de documentos científicos en español (CORE API). |
+| `Datos/` | Carpeta de presentación para la entrega. Resume cómo se organizan los datos reales del proyecto. |
 | `src/` | Lógica central: preprocesamiento, clasificación retórica, detección de contribuciones. |
 | `experiments/` | Scripts para ejecutar experimentos controlados y comparables. |
 | `evaluation/` | Cálculo de métricas, matrices de confusión y análisis de errores. |
 | `notebooks/` | Exploración de datos, pruebas de modelos y análisis intermedios. |
+| `Modelos.dvc` | Puntero DVC para la carpeta `Modelos/`, que contiene los modelos organizados por tarea. |
+| `data_lake/` | Estructura operativa real de datos del proyecto: bronze layer en Parquet, datasets tabulares, manifiestos, reportes y scripts. |
 
 ## Alcance
 
@@ -150,12 +163,18 @@ Verificar que quedaron activas:
 aws sts get-caller-identity
 ```
 
-### 3. Descargar los datos con DVC
+### 3. Descargar los datos y modelos con DVC
+
+Los artefactos grandes del proyecto se organizan así:
+
+- `data_lake/clean_parquet/`: bronze layer del pipeline. Contiene la versión normalizada del corpus crudo exportada a Parquet.
+- `data_lake/datasets/`: datasets tabulares derivados para entrenamiento, evaluación y conjuntos gold/silver.
+- `Modelos/`: modelos curados por tarea.
 
 Desde la raíz del repositorio:
 
 ```bash
-dvc pull
+dvc pull data_lake/datasets.dvc data_lake/clean_parquet.dvc Modelos.dvc
 ```
 
 ### 4. Ejecutar la aplicación web (sin Docker)
@@ -181,6 +200,7 @@ Abre http://localhost:5000 en tu navegador.
 **Nota (sin Docker):**
 - Ajusta `OLLAMA_BASE_URL=http://127.0.0.1:11434`
 - Ajusta `MLFLOW_TRACKING_URI=http://127.0.0.1:5006` si vas a levantar MLflow local
+- Si configuras `TASK1_ENCODER_MLFLOW_MODEL_URI` y/o `TASK2_ENCODER_MLFLOW_MODEL_URI` apuntando a S3, la primera corrida del backend descargará los modelos al cache local. Esa primera inferencia puede tardar más mientras termina la descarga.
 
 #### Proxy LLM (OpenRouter) — sin Docker
 
@@ -238,6 +258,10 @@ docker compose up --build
 ```
 
 Antes de levantar con Docker, asegúrate de definir `OPENROUTER_API_KEY` en `.env`.
+
+**Nota de tiempos con S3 en Docker:**
+- Si los modelos encoder se referencian por `s3://...`, la descarga ocurre en build time o en el primer arranque que materialice esos artefactos en la imagen/cache.
+- Por eso, el `docker build` puede tardar bastante más la primera vez si tiene que bajar modelos pesados desde S3.
 
 Si `TASK1_ENCODER_MLFLOW_MODEL_URI` o `TASK2_ENCODER_MLFLOW_MODEL_URI` apuntan a
 `s3://...`, el build del backend los precarga en `MODEL_CACHE_DIR` para evitar la
@@ -310,6 +334,11 @@ DEBUG=1         # Modo debug de Flask (por defecto: 1)
 
 Para evitar commitear archivos grandes (por ejemplo `model.safetensors`) en GitHub, puedes subir los modelos a MLflow y referenciarlos por URI `runs:/...`.
 
+Si en vez de un servidor MLflow usas rutas `s3://...` directas:
+
+- en ejecución normal, la descarga ocurre en la primera corrida que necesite el modelo
+- en Docker, esa descarga puede impactar el build o el primer arranque según cómo materialices el cache
+
 **Cache local (evita re-descargas):**
 ```bash
 MODEL_CACHE_DIR=artifacts/model_cache
@@ -370,8 +399,8 @@ sudo apt-get install -y python3 python3-venv python3-pip
 
 2) Clonar repo y crear venv:
 ```bash
-git clone <tu_repo>
-cd <tu_repo>/app/backend
+git clone https://github.com/jdyepest/entrega_2_micropryecto.git
+cd entrega_2_micropryecto/app/backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt

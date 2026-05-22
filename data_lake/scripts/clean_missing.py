@@ -3,7 +3,7 @@ import pandas as pd
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--in_csv", required=True, help="CSV output from LLM labeling")
+    ap.add_argument("--in_csv", required=True, help="CSV output from assisted labeling")
     ap.add_argument("--out_csv", required=True, help="Cleaned CSV without missing rows")
     args = ap.parse_args()
 

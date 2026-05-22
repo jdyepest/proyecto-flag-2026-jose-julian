@@ -60,7 +60,7 @@ def parse_json_safely(text: str) -> dict[str, Any]:
     return json.loads(raw)
 
 
-def call_openrouter_batch(
+def call_review_batch(
     client: OpenAI,
     model: str,
     items: list[dict[str, Any]],
@@ -89,13 +89,13 @@ def call_openrouter_batch(
             time.sleep(backoff)
             backoff = min(backoff * 2, 30)
 
-    raise RuntimeError(f"OpenRouter batch failed after retries: {last_err}")
+    raise RuntimeError(f"Batch review failed after retries: {last_err}")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--input_parquet", required=True, help="Parquet with chunk_id,label,text")
-    ap.add_argument("--output_csv", required=True, help="Output CSV with LLM labels")
+    ap.add_argument("--output_csv", required=True, help="Output CSV with reviewed labels")
     ap.add_argument("--model", default="meta-llama/llama-3.3-70b-instruct:nitro")
     ap.add_argument("--batch_size", type=int, default=20)
     ap.add_argument("--max_chars", type=int, default=2500)
@@ -147,7 +147,7 @@ def main() -> None:
 
     for i, batch in enumerate(batches, start=1):
         print(f"[{i}/{len(batches)}] labeling {len(batch)}")
-        result = call_openrouter_batch(client=client, model=args.model, items=batch)
+        result = call_review_batch(client=client, model=args.model, items=batch)
         returned = result.get("labels") or []
         by_id = {str(x.get("chunk_id", "")): x for x in returned if isinstance(x, dict)}
 
@@ -156,7 +156,7 @@ def main() -> None:
             cid = str(r["chunk_id"])
             base_row = {
                 "chunk_id": cid,
-                "heuristic_label": str(r["label"]),
+                "initial_label": str(r["label"]),
                 "text": str(r["text"]),
             }
 
@@ -165,16 +165,16 @@ def main() -> None:
                 out_rows.append(
                     {
                         **base_row,
-                        "llm_label": "",
-                        "llm_confidence": 0.0,
-                        "llm_notes": "MISSING_FROM_MODEL_OUTPUT",
+                        "reviewed_label": "",
+                        "reviewed_confidence": 0.0,
+                        "review_notes": "MISSING_FROM_MODEL_OUTPUT",
                     }
                 )
                 continue
 
-            llm_label = str(pred.get("gold_label", "")).strip().upper()
-            if llm_label not in LABELS:
-                llm_label = ""
+            reviewed_label = str(pred.get("gold_label", "")).strip().upper()
+            if reviewed_label not in LABELS:
+                reviewed_label = ""
 
             try:
                 conf = float(pred.get("confidence", 0.0))
@@ -185,9 +185,9 @@ def main() -> None:
             out_rows.append(
                 {
                     **base_row,
-                    "llm_label": llm_label,
-                    "llm_confidence": conf,
-                    "llm_notes": normalize_notes(str(pred.get("notes", ""))),
+                    "reviewed_label": reviewed_label,
+                    "reviewed_confidence": conf,
+                    "review_notes": normalize_notes(str(pred.get("notes", ""))),
                 }
             )
 

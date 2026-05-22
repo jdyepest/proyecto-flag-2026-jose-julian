@@ -25,10 +25,10 @@ El tablero está organizado en 4 vistas principales:
 
 ## 2. Acceso al tablero
 
-Abre en tu navegador la URL suministrada por el equipo. Ejemplo:
+Abre en tu navegador la URL oficial del tablero:
 
 ```
-http://52.91.169.210:5000/
+http://100.52.250.51:5000/
 ```
 
 Recomendación: usar **Chrome** o **Firefox** actualizados.
@@ -45,7 +45,7 @@ Además del tablero, la API se puede consumir directamente (por ejemplo desde **
 
 **Base URL**
 - Local: `http://localhost:5000`
-- IP pública: `http://<IP_PUBLICA>:5000` (ejemplo: `http://52.91.169.210:5000`)
+- IP pública: `http://100.52.250.51:5000`
 
 ### 2.1.1 Endpoint principal — Análisis
 
@@ -329,6 +329,11 @@ Si tienes problemas, contacta al equipo responsable del despliegue y comparte:
 - Texto de error completo
 - Modelo seleccionado
 - Fecha y hora del incidente
+
+## 12. Referencias
+
+- Aplicación desplegada: `http://100.52.250.51:5000/`
+- Repositorio del proyecto: `https://github.com/jdyepest/entrega_2_micropryecto`
 
 ---
 

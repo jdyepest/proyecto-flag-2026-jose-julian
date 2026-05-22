@@ -18,7 +18,6 @@ RUN pip install --no-cache-dir "dvc[s3]"
 
 COPY .dvc /app/.dvc
 COPY .dvcignore /app/.dvcignore
-COPY data_lake/*.dvc /app/data_lake/
 
 # Force no-SCM mode locally and pull tracked data from DVC remote
 RUN printf "[core]\n    no_scm = true\n" > /app/.dvc/config.local
