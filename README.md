@@ -1,8 +1,8 @@
-# Microproyecto MAIA — Análisis de documentos científicos en español
+# Proyecto MAIA — Análisis de documentos científicos en español
 
 **Tema 1 – 2026** · Grupo FLAG-TICsW · Universidad de los Andes
 
-Este repositorio corresponde a un microproyecto MAIA cuyo objetivo es desarrollar una solución computacional para el análisis automático de documentos científicos en español, abordando (i) la segmentación y clasificación retórica y (ii) la extracción de contribuciones científicas.
+Este repositorio corresponde a un proyecto MAIA cuyo objetivo es desarrollar una solución computacional para el análisis automático de documentos científicos en español, abordando (i) la segmentación y clasificación retórica y (ii) la extracción de contribuciones científicas.
 
 ## Enlaces de entrega
 
